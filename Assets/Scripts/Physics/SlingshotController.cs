@@ -9,7 +9,6 @@ using UnityEngine;
 ///      (to sta konici frače kjer se pritrdi gumice)
 ///   3. Na "Slingshot" GameObjectu dodaj dva LineRenderer komponenti za gumice
 ///   4. Povleci BirdQueue referenco iz scene
-///   5. (Opcijsko) Dodaj TrajectoryPreview na isti GameObject
 /// </summary>
 public class SlingshotController : MonoBehaviour
 {
@@ -38,9 +37,8 @@ public class SlingshotController : MonoBehaviour
 
     // ── Notranje stanje ────────────────────────────────────────────
     private bool isDragging = false;
-    private Vector2 dragPosition;
-    private Vector2 slingshotCenter;
-    private TrajectoryPreview trajectoryPreview;   // opcijsko, najde se avtomatsko
+    private Vector2 dragPosition;                // trenutna pozicija vleka
+    private Vector2 slingshotCenter;             // center frače (med ankorama)
 
     // ── Unity callbacks ────────────────────────────────────────────
     void Awake()
@@ -48,8 +46,7 @@ public class SlingshotController : MonoBehaviour
         if (mainCamera == null)
             mainCamera = Camera.main;
 
-        slingshotCenter   = (anchorLeft.position + anchorRight.position) / 2f;
-        trajectoryPreview = GetComponent<TrajectoryPreview>();
+        slingshotCenter = (anchorLeft.position + anchorRight.position) / 2f;
 
         HideBands();
     }
@@ -60,12 +57,7 @@ public class SlingshotController : MonoBehaviour
         if (currentBird == null) return;
 
         HandleInput(currentBird);
-
-        if (isDragging)
-        {
-            UpdateBandVisuals(currentBird.transform.position);
-            UpdateTrajectory(currentBird);
-        }
+        if (isDragging) UpdateBandVisuals(currentBird.transform.position);
     }
 
     // ── Input ──────────────────────────────────────────────────────
@@ -74,6 +66,7 @@ public class SlingshotController : MonoBehaviour
     {
         if (Input.GetMouseButtonDown(0))
         {
+            // Začni vlečenje samo če kliknemo blizu ptice
             Vector2 mouseWorld = ScreenToWorld(Input.mousePosition);
             float clickRadius  = 0.8f;
 
@@ -81,7 +74,6 @@ public class SlingshotController : MonoBehaviour
             {
                 isDragging = true;
                 ShowBands();
-                trajectoryPreview?.Show();
             }
         }
 
@@ -93,7 +85,6 @@ public class SlingshotController : MonoBehaviour
         if (Input.GetMouseButtonUp(0) && isDragging)
         {
             isDragging = false;
-            trajectoryPreview?.Hide();
             LaunchBird(bird);
         }
     }
@@ -103,39 +94,30 @@ public class SlingshotController : MonoBehaviour
     private void DragBird(GameObject bird)
     {
         Vector2 mouseWorld = ScreenToWorld(Input.mousePosition);
-        Vector2 offset     = mouseWorld - slingshotCenter;
 
+        // Izračunaj offset od centra frače
+        Vector2 offset    = mouseWorld - slingshotCenter;
+
+        // Omeji razdaljo vleka na maxDragDistance
         if (offset.magnitude > maxDragDistance)
             offset = offset.normalized * maxDragDistance;
 
-        // Ptica sme biti samo LEVO od centra
+        // Ptica sme biti samo LEVO od centra (vlečemo nazaj, ne naprej)
         if (offset.x > 0f) offset.x = 0f;
 
-        dragPosition            = slingshotCenter + offset;
+        dragPosition          = slingshotCenter + offset;
         bird.transform.position = dragPosition;
-    }
-
-    // ── Trajektorija ───────────────────────────────────────────────
-
-    private void UpdateTrajectory(GameObject bird)
-    {
-        if (trajectoryPreview == null) return;
-
-        Vector2 launchDirection = slingshotCenter - dragPosition;
-        Vector2 launchForce     = launchDirection * launchForceMultiplier;
-
-        float mass = bird.GetComponent<Rigidbody2D>()?.mass ?? 1f;
-
-        trajectoryPreview.UpdatePreview(dragPosition, launchForce, mass);
     }
 
     // ── Izstrel ────────────────────────────────────────────────────
 
     private void LaunchBird(GameObject bird)
     {
+        // Smer izstrela je nasprotna od vleka
         Vector2 launchDirection = slingshotCenter - dragPosition;
         Vector2 launchForce     = launchDirection * launchForceMultiplier;
 
+        // Pokliči Launch na BirdController
         BirdController bc = bird.GetComponent<BirdController>();
         if (bc != null)
         {
@@ -156,9 +138,11 @@ public class SlingshotController : MonoBehaviour
 
     private void UpdateBandVisuals(Vector3 birdPos)
     {
+        // Leva gumice: anchorLeft → ptica
         leftBand.SetPosition(0, anchorLeft.position);
         leftBand.SetPosition(1, birdPos);
 
+        // Desna gumice: anchorRight → ptica
         rightBand.SetPosition(0, anchorRight.position);
         rightBand.SetPosition(1, birdPos);
     }
@@ -183,13 +167,17 @@ public class SlingshotController : MonoBehaviour
         return mainCamera.ScreenToWorldPoint(screenPos);
     }
 
+    // ── Gizmos (vidno samo v Scene oknu med razvojem) ──────────────
     void OnDrawGizmosSelected()
     {
         if (anchorLeft == null || anchorRight == null) return;
 
+        // Prikaži center frače
         Vector3 center = (anchorLeft.position + anchorRight.position) / 2f;
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(center, 0.1f);
+
+        // Prikaži maksimalni krog vleka
         Gizmos.color = Color.cyan;
         Gizmos.DrawWireSphere(center, maxDragDistance);
     }

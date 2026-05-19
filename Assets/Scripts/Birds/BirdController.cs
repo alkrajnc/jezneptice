@@ -89,7 +89,7 @@ public class BirdController : MonoBehaviour
     private void SetPhysicsEnabled(bool enabled)
     {
         rb.gravityScale  = enabled ? 1f : 0f;
-        rb.isKinematic   = !enabled;
+        rb.bodyType      = enabled ? RigidbodyType2D.Dynamic : RigidbodyType2D.Kinematic;
         col.enabled      = enabled;
     }
 

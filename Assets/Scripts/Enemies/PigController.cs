@@ -51,7 +51,6 @@ public class PigController : MonoBehaviour
 
     [Header("Obnašanje")]
     [SerializeField] private float idleSFXInterval = 8f;  // Sekunde med naključnimi zvoki
-    [SerializeField] private bool canWear = false;        // Čelada = večji HP bonus
 
     // ─────────────────────────────────────────────
     // Interno stanje

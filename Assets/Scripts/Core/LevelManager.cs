@@ -28,6 +28,16 @@ public class LevelManager : MonoBehaviour
     {
         if (levelJson != null)
             LoadLevel();
+        else
+            FindScenePigs();
+    }
+
+    private void FindScenePigs()
+    {
+        activePigs.Clear();
+        foreach (var pig in FindObjectsByType<PigController>(FindObjectsSortMode.None))
+            RegisterPig(pig);
+        Debug.Log($"[LevelManager] Najdeni prašiči v sceni: {activePigs.Count}");
     }
 
     // ── Level loading ──────────────────────────────────────────────

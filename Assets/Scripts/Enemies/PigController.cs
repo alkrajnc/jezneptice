@@ -48,6 +48,7 @@ public class PigController : MonoBehaviour
     [SerializeField] private AudioClip damagedSFX;
     [SerializeField] private AudioClip deathSFX;
     [SerializeField] private AudioClip idleSFX;
+    [SerializeField] private AudioClip collisionSFX;
 
     [Header("Obnašanje")]
     [SerializeField] private float idleSFXInterval = 8f;  // Sekunde med naključnimi zvoki
@@ -108,8 +109,10 @@ public class PigController : MonoBehaviour
     {
         if (isDead) return;
 
+        PlaySound(collisionSFX);
+
         float impactSpeed = col.relativeVelocity.magnitude;
-        float impactDamage = impactSpeed * 2f; // Poškodba sorazmerna s hitrostjo
+        float impactDamage = impactSpeed * 2f;
 
         if (impactDamage >= minImpactDamage)
             TakeDamage(impactDamage);

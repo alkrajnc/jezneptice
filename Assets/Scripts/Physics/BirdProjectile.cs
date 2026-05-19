@@ -90,7 +90,7 @@ public class BirdProjectile : MonoBehaviour
 
         rb.mass = mass;
         rb.gravityScale = gravityScale;
-        rb.isKinematic = true; // Miruje dokler ga ne izstrelimo
+        rb.bodyType = RigidbodyType2D.Kinematic; // Miruje dokler ga ne izstrelimo
 
         // Skrij sled
         if (trail) trail.enabled = false;
@@ -101,9 +101,9 @@ public class BirdProjectile : MonoBehaviour
         if (!isLaunched || hasLanded) return;
 
         // Rotacija ptice skladno s smerjo leta
-        if (rb.velocity.sqrMagnitude > 0.01f)
+        if (rb.linearVelocity.sqrMagnitude > 0.01f)
         {
-            float angle = Mathf.Atan2(rb.velocity.y, rb.velocity.x) * Mathf.Rad2Deg;
+            float angle = Mathf.Atan2(rb.linearVelocity.y, rb.linearVelocity.x) * Mathf.Rad2Deg;
             transform.rotation = Quaternion.Lerp(
                 transform.rotation,
                 Quaternion.Euler(0f, 0f, angle),
@@ -140,8 +140,8 @@ public class BirdProjectile : MonoBehaviour
     public void Launch(Vector2 velocity)
     {
         isLaunched = true;
-        rb.isKinematic = false;
-        rb.velocity = velocity;
+        rb.bodyType = RigidbodyType2D.Dynamic;
+        rb.linearVelocity = velocity;
         launchVelocity = velocity;
 
         if (trail) trail.enabled = true;
@@ -218,7 +218,7 @@ public class BirdProjectile : MonoBehaviour
     // Rumena – pospeši naprej
     private void AbilityYellow()
     {
-        rb.velocity = rb.velocity.normalized * rb.velocity.magnitude * yellowBoostMultiplier;
+        rb.linearVelocity = rb.linearVelocity.normalized * rb.linearVelocity.magnitude * yellowBoostMultiplier;
         Debug.Log("[Bird] Rumena ptica: POSPEŠEK!");
     }
 
@@ -227,7 +227,7 @@ public class BirdProjectile : MonoBehaviour
     {
         if (blueBirdPrefab == null) return;
 
-        Vector2 currentVel = rb.velocity;
+        Vector2 currentVel = rb.linearVelocity;
 
         for (int i = -1; i <= 1; i += 2) // -1 in +1 (levo in desno)
         {
@@ -265,7 +265,7 @@ public class BirdProjectile : MonoBehaviour
             eggRb.AddForce(Vector2.down * eggDropForce);
 
         // Bela ptica se odbije navzgor
-        rb.velocity = new Vector2(rb.velocity.x, Mathf.Abs(rb.velocity.y) * 0.5f);
+        rb.linearVelocity = new Vector2(rb.linearVelocity.x, Mathf.Abs(rb.linearVelocity.y) * 0.5f);
         Debug.Log("[Bird] Bela ptica: JAJCE ODVRŽENO!");
     }
 

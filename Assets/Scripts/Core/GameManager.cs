@@ -22,10 +22,20 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject);
     }
 
+    public int Score { get; private set; }
+
     public void StartGame()
     {
         currentState = GameState.Playing;
+        Score = 0;
         Debug.Log("Game Started");
+    }
+
+    public void AddScore(int amount)
+    {
+        if (amount <= 0) return;
+        Score += amount;
+        Debug.Log($"[GameManager] Score: {Score}");
     }
 
     public void WinLevel()

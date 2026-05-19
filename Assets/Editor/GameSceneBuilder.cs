@@ -12,9 +12,9 @@ public static class GameSceneBuilder
             "Da, zbriši in postavi", "Prekliči"))
             return;
 
-        var allObjects = Object.FindObjectsByType<GameObject>(FindObjectsInactive.Exclude, FindObjectsSortMode.None);
+        var allObjects = Object.FindObjectsByType<GameObject>(FindObjectsInactive.Include, FindObjectsSortMode.None);
         foreach (var go in allObjects)
-            if (go.transform.parent == null)
+            if (go != null && go.transform != null && go.transform.parent == null)
                 Object.DestroyImmediate(go);
 
         var camGO = new GameObject("Main Camera");
@@ -25,6 +25,10 @@ public static class GameSceneBuilder
         cam.backgroundColor = new Color(0.13f, 0.13f, 0.13f);
         camGO.AddComponent<AudioListener>();
         camGO.transform.position = new Vector3(0f, 1f, -10f);
+
+        EnsureTag("Bird");
+        EnsureTag("Pig");
+        EnsureTag("Block");
 
         new GameObject("GameManager").AddComponent<GameManager>();
         new GameObject("LevelManager").AddComponent<LevelManager>();
@@ -56,6 +60,9 @@ public static class GameSceneBuilder
 
         var slingshot = new GameObject("Slingshot");
         slingshot.transform.position = new Vector3(-4f, -1.5f, 0f);
+        var slingshotSR = slingshot.AddComponent<SpriteRenderer>();
+        slingshotSR.sprite = LoadSprite("Sprites/UI/sling_touch");
+        slingshotSR.sortingOrder = 3;
 
         var anchorL = new GameObject("AnchorLeft");
         anchorL.transform.SetParent(slingshot.transform);
@@ -79,6 +86,7 @@ public static class GameSceneBuilder
         sc.rightBand   = rightBand;
         sc.birdQueue   = birdQueue;
         sc.mainCamera  = cam;
+        birdQueue.slingshotSpawnPoint = slingshot.transform;
         slingshot.AddComponent<TrajectoryPreview>();
 
         var bird = new GameObject("Bird_Red");
@@ -92,6 +100,8 @@ public static class GameSceneBuilder
         birdRb.gravityScale = 1.5f;
         bird.AddComponent<BirdController>();
         bird.tag = "Bird";
+
+        birdQueue.testBird = bird;
 
         var pig = new GameObject("Pig_Test");
         pig.transform.position = new Vector3(3f, -2.7f, 0f);
@@ -120,6 +130,18 @@ public static class GameSceneBuilder
 
         Debug.Log("[GameSceneBuilder] GameScene postavljena!");
         EditorUtility.DisplayDialog("Končano!", "Shrani: File → Save As → Assets/Scenes/GameScene.unity", "OK");
+    }
+
+    private static void EnsureTag(string tag)
+    {
+        SerializedObject tagManager = new SerializedObject(
+            AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/TagManager.asset")[0]);
+        SerializedProperty tagsProp = tagManager.FindProperty("tags");
+        for (int i = 0; i < tagsProp.arraySize; i++)
+            if (tagsProp.GetArrayElementAtIndex(i).stringValue == tag) return;
+        tagsProp.InsertArrayElementAtIndex(tagsProp.arraySize);
+        tagsProp.GetArrayElementAtIndex(tagsProp.arraySize - 1).stringValue = tag;
+        tagManager.ApplyModifiedProperties();
     }
 
     private static Sprite LoadSprite(string path)

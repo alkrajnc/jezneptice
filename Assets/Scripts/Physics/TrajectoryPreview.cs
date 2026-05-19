@@ -113,8 +113,7 @@ public class TrajectoryPreview : MonoBehaviour
             SpriteRenderer sr = dots[i].AddComponent<SpriteRenderer>();
             sr.sprite          = CreateCircleSprite();
             sr.color           = dotColor;
-            sr.sortingLayerName = "UI";   // pike so vedno na vrhu
-            sr.sortingOrder    = 10;
+            sr.sortingOrder    = 20;
 
             if (dotMaterial != null)
                 sr.material = dotMaterial;

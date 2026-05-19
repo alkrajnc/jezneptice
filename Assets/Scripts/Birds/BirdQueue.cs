@@ -19,6 +19,10 @@ public class BirdQueue : MonoBehaviour
     public Transform queueStartPoint;
     public float queueSpacing = 1.2f;
 
+    [Header("Testna ptica (za razvoj)")]
+    [Tooltip("Povleci Bird_Red iz scene sem — za testiranje brez prefabov")]
+    public GameObject testBird;
+
     // Notranje stanje
     private Queue<GameObject> birdQueue = new Queue<GameObject>();
     private List<GameObject> spawnedQueueBirds = new List<GameObject>();
@@ -26,6 +30,11 @@ public class BirdQueue : MonoBehaviour
 
     void Start()
     {
+        if (testBird != null)
+        {
+            currentBird = testBird;
+            return;
+        }
         SpawnQueue();
         LoadNextBird();
     }

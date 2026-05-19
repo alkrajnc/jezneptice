@@ -37,6 +37,9 @@ public class SlingshotController : MonoBehaviour
     public BirdQueue birdQueue;
     public Camera mainCamera;
 
+    public AudioClip launchSfx;
+
+
     // ── Notranje stanje ────────────────────────────────────────────
     private TrajectoryPreview trajectory;
     private bool isDragging = false;
@@ -81,7 +84,7 @@ public class SlingshotController : MonoBehaviour
 
                 if (trajectory != null)
                 {
-                    Vector2 launchDir   = slingshotCenter - dragPosition;
+                    Vector2 launchDir = slingshotCenter - dragPosition;
                     Vector2 launchForce = launchDir * launchForceMultiplier;
                     if (launchForce.magnitude < minLaunchForce)
                         launchForce = launchForce.normalized * minLaunchForce;
@@ -105,7 +108,7 @@ public class SlingshotController : MonoBehaviour
     {
         Vector2 mouseWorld = ScreenToWorld(Input.mousePosition);
         // Izračunaj offset od centra frače
-        Vector2 offset    = mouseWorld - slingshotCenter;
+        Vector2 offset = mouseWorld - slingshotCenter;
 
         // Omeji razdaljo vleka na maxDragDistance
         if (offset.magnitude > maxDragDistance)
@@ -114,7 +117,7 @@ public class SlingshotController : MonoBehaviour
         // Ptica sme biti samo LEVO od centra (vlečemo nazaj, ne naprej)
         if (offset.x > 0f) offset.x = 0f;
 
-        dragPosition          = slingshotCenter + offset;
+        dragPosition = slingshotCenter + offset;
         bird.transform.position = dragPosition;
     }
 
@@ -122,9 +125,10 @@ public class SlingshotController : MonoBehaviour
 
     private void LaunchBird(GameObject bird)
     {
+        GetComponent<AudioSource>().PlayOneShot(launchSfx);
         // Smer izstrela je nasprotna od vleka
         Vector2 launchDirection = slingshotCenter - dragPosition;
-        Vector2 launchForce     = launchDirection * launchForceMultiplier;
+        Vector2 launchForce = launchDirection * launchForceMultiplier;
         if (launchForce.magnitude < minLaunchForce)
             launchForce = launchForce.normalized * minLaunchForce;
 
@@ -160,13 +164,13 @@ public class SlingshotController : MonoBehaviour
 
     private void ShowBands()
     {
-        leftBand.enabled  = true;
+        leftBand.enabled = true;
         rightBand.enabled = true;
     }
 
     private void HideBands()
     {
-        leftBand.enabled  = false;
+        leftBand.enabled = false;
         rightBand.enabled = false;
     }
 

@@ -10,6 +10,7 @@ public class BirdController : MonoBehaviour
     public enum BirdState { OnSlingshot, Flying, Dead }
     public BirdState CurrentState { get; private set; } = BirdState.OnSlingshot;
 
+
     // ── Nastavitve ─────────────────────────────────────────────────
     [Header("Fizika")]
     [Tooltip("Koliko časa po pristanku se ptica uniči")]
@@ -25,13 +26,14 @@ public class BirdController : MonoBehaviour
     private Rigidbody2D rb;
     private Collider2D col;
 
+    public AudioClip launchSfx;
+
     // ── Unity callbacks ────────────────────────────────────────────
     void Awake()
     {
-        rb  = GetComponent<Rigidbody2D>();
+        rb = GetComponent<Rigidbody2D>();
         col = GetComponent<Collider2D>();
 
-        // Ko je ptica na frači, fizika ne sme delovati
         SetPhysicsEnabled(false);
     }
 
@@ -59,6 +61,7 @@ public class BirdController : MonoBehaviour
         CurrentState = BirdState.Flying;
         SetPhysicsEnabled(true);
         rb.AddForce(force, ForceMode2D.Impulse);
+        GetComponent<AudioSource>().PlayOneShot(launchSfx);
 
         Debug.Log($"[BirdController] Ptica izstreljena s silo: {force}");
     }
@@ -74,7 +77,7 @@ public class BirdController : MonoBehaviour
         Debug.Log("[BirdController] Ptica je mrtva.");
 
         // Upočasni gibanje pri pristanku
-        rb.linearDamping  = 5f;
+        rb.linearDamping = 5f;
         rb.angularDamping = 5f;
 
         Destroy(gameObject, destroyDelay);
@@ -89,7 +92,7 @@ public class BirdController : MonoBehaviour
     private void SetPhysicsEnabled(bool enabled)
     {
         rb.gravityScale = enabled ? 1f : 0f;
-        rb.bodyType     = enabled ? RigidbodyType2D.Dynamic : RigidbodyType2D.Kinematic;
+        rb.bodyType = enabled ? RigidbodyType2D.Dynamic : RigidbodyType2D.Kinematic;
     }
 
     /// <summary>

@@ -76,6 +76,7 @@ public class PigController : MonoBehaviour
     public bool IsDead => isDead;
     public float HealthPercent => currentHealth / maxHealth;
 
+
     // ─────────────────────────────────────────────
     // Unity callbacks
     // ─────────────────────────────────────────────
@@ -121,6 +122,7 @@ public class PigController : MonoBehaviour
     /// <summary>Prasica sprejme poškodbo.</summary>
     public void TakeDamage(float amount)
     {
+
         if (isDead || amount <= 0f) return;
 
         float previousHealth = currentHealth;

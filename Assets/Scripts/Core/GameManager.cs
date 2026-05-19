@@ -40,13 +40,17 @@ public class GameManager : MonoBehaviour
 
     public void WinLevel()
     {
+        if (currentState != GameState.Playing) return;
         currentState = GameState.LevelComplete;
         Debug.Log("Level Complete!");
+        GameUI.Instance?.ShowWin(Score);
     }
 
     public void LoseLevel()
     {
+        if (currentState != GameState.Playing) return;
         currentState = GameState.GameOver;
         Debug.Log("Game Over!");
+        GameUI.Instance?.ShowLose(Score);
     }
 }

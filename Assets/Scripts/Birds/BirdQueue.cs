@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -54,6 +55,16 @@ public class BirdQueue : MonoBehaviour
         currentBird = null;
         AdvanceQueue();
         LoadNextBird();
+
+        if (currentBird == null)
+            StartCoroutine(CheckLoseAfterDelay(3f));
+    }
+
+    private IEnumerator CheckLoseAfterDelay(float delay)
+    {
+        yield return new WaitForSeconds(delay);
+        if (GameManager.Instance?.currentState == GameState.Playing)
+            GameManager.Instance.LoseLevel();
     }
 
     /// <summary>

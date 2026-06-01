@@ -10,7 +10,9 @@ public class StartMenuUI : MonoBehaviour
     private GameObject menuPanel;
     private GameObject mockPanel;
     private Font font;
+    private GameObject settingsPanel;
     private GameObject accountPanel;
+    private const string KEY_VOLUME = "VOLUME";
     private const string KEY_NAME = "PLAYER_NAME";
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -39,74 +41,163 @@ public class StartMenuUI : MonoBehaviour
         BuildMenu();
     }
 
-    private void OpenAccount()
+    private void OpenSettings()
+{
+    if (settingsPanel != null) Destroy(settingsPanel);
+
+    settingsPanel = MakePanel(menuPanel, "SettingsPanel", new Color(0f, 0f, 0f, 0.75f));
+
+    MakeText(settingsPanel, "Title", "NASTAVITVE", 52, Color.white,
+        new Vector2(0, 160), new Vector2(600, 80));
+
+    // ==================== VOLUME SLIDER ====================
+    CreateVolumeSlider();
+
+    // label
+    MakeText(settingsPanel, "VolumeLabel", "VOLUME", 28, Color.white,
+        new Vector2(0, 90), new Vector2(300, 40));
+
+    // BACK
+    var backBtn = MakeButton(settingsPanel, "BackBtn", "NAZAJ",
+        new Vector2(0, -140), new Vector2(260, 60), Color.yellow);
+
+    backBtn.GetComponent<Button>().onClick.AddListener(() =>
     {
-        if (accountPanel != null) Destroy(accountPanel);
+        Destroy(settingsPanel);
+    });
+}
 
-        accountPanel = MakePanel(menuPanel, "AccountPanel", new Color(0f, 0f, 0f, 0.75f));
+private void CreateVolumeSlider()
+{
+    var sliderGO = new GameObject("VolumeSlider", typeof(RectTransform), typeof(Image), typeof(Slider));
+    sliderGO.transform.SetParent(settingsPanel.transform, false);
 
-        MakeText(accountPanel, "Title", "ACCOUNT", 52, Color.white,
-            new Vector2(0, 160), new Vector2(600, 80));
+    var rect = sliderGO.GetComponent<RectTransform>();
+    rect.sizeDelta = new Vector2(500, 20);           // ← tanek slider (višina 20)
+    rect.anchoredPosition = new Vector2(0, 40);
 
-        // ===== INPUT FIELD =====
-        var inputGO = new GameObject("NameInput", typeof(RectTransform), typeof(Image), typeof(InputField));
-        inputGO.transform.SetParent(accountPanel.transform, false);
+    var slider = sliderGO.GetComponent<Slider>();
+    slider.interactable = true;
 
-        var input = inputGO.GetComponent<InputField>();
+    // Background (track)
+    var bgImage = sliderGO.GetComponent<Image>();
+    bgImage.color = new Color(0.3f, 0.3f, 0.3f, 1f);   // temno siva
+    bgImage.type = Image.Type.Sliced; // če imaš sliced sprite, še lepše
 
-        var bg = inputGO.GetComponent<Image>();
-        bg.color = Color.white;
+    // Fill Area
+    var fillArea = new GameObject("Fill Area", typeof(RectTransform));
+    fillArea.transform.SetParent(sliderGO.transform, false);
+    var fillAreaRect = fillArea.GetComponent<RectTransform>();
+    fillAreaRect.anchorMin = new Vector2(0, 0.5f);
+    fillAreaRect.anchorMax = new Vector2(1, 0.5f);
+    fillAreaRect.sizeDelta = new Vector2(0, 10);
 
-        var rt = inputGO.GetComponent<RectTransform>();
-        rt.sizeDelta = new Vector2(400, 60);
-        rt.anchoredPosition = new Vector2(0, 40);
+    var fillImageGO = new GameObject("Fill", typeof(Image));
+    fillImageGO.transform.SetParent(fillArea.transform, false);
+    var fillRect = fillImageGO.GetComponent<RectTransform>();
+    fillRect.anchorMin = new Vector2(0, 0);
+    fillRect.anchorMax = new Vector2(1, 1);
+    fillRect.sizeDelta = Vector2.zero;
 
-        // TEXT
-        var textGO = new GameObject("Text");
-        textGO.transform.SetParent(inputGO.transform, false);
+    var fillImage = fillImageGO.GetComponent<Image>();
+    fillImage.color = Color.yellow;
 
-        var text = textGO.AddComponent<Text>();
-        text.font = font;
-        text.color = Color.black;
-        text.alignment = TextAnchor.MiddleLeft;
+    // Handle
+    var handleGO = new GameObject("Handle", typeof(Image));
+    handleGO.transform.SetParent(sliderGO.transform, false);
+    var handleRect = handleGO.GetComponent<RectTransform>();
+    handleRect.sizeDelta = new Vector2(25, 35);        // velikost "ročice"
+    
+    var handleImage = handleGO.GetComponent<Image>();
+    handleImage.color = Color.white;
 
-        input.textComponent = text;
+    // Povezave (OBVEZNO!)
+    slider.fillRect = fillRect;
+    slider.handleRect = handleRect;
+    slider.targetGraphic = handleImage;
 
-        // PLACEHOLDER
-        var placeholderGO = new GameObject("Placeholder");
-        placeholderGO.transform.SetParent(inputGO.transform, false);
+    slider.direction = Slider.Direction.LeftToRight;
+    slider.minValue = 0;
+    slider.maxValue = 1;
+    slider.value = PlayerPrefs.GetFloat("Volume", 1f);
 
-        var placeholder = placeholderGO.AddComponent<Text>();
-        placeholder.font = font;
-        placeholder.text = "Vnesi ime...";
-        placeholder.color = Color.gray;
+    // Posodobi glasnost takoj
+    AudioListener.volume = slider.value;
 
-        input.placeholder = placeholder;
+    // Listener
+    slider.onValueChanged.AddListener(value =>
+    {
+        AudioListener.volume = value;
+        PlayerPrefs.SetFloat("Volume", value);
+    });
+}
+    private void OpenAccount()
+{
+    if (accountPanel != null) Destroy(accountPanel);
 
-        // LOAD SAVE
-        input.text = PlayerPrefs.GetString(KEY_NAME, "Player1");
+    accountPanel = MakePanel(menuPanel, "AccountPanel", new Color(0f, 0f, 0f, 0.75f));
 
-        // SAVE on change
-        input.onValueChanged.AddListener(v =>
-        {
-            PlayerPrefs.SetString(KEY_NAME, v);
-        });
+    MakeText(accountPanel, "Title", "ACCOUNT", 52, Color.white,
+        new Vector2(0, 160), new Vector2(600, 80));
 
-        // SHOW NAME
-        MakeText(accountPanel, "CurrentName",
-            "IME: " + input.text, 28, Color.white,
-            new Vector2(0, 110), new Vector2(500, 40));
+    // ===== INPUT FIELD =====
+    var inputGO = new GameObject("NameInput", typeof(RectTransform), typeof(Image), typeof(InputField));
+    inputGO.transform.SetParent(accountPanel.transform, false);
 
-        // BACK
-        var backBtn = MakeButton(accountPanel, "BackBtn", "NAZAJ",
-            new Vector2(0, -140), new Vector2(260, 60), Color.yellow);
+    var input = inputGO.GetComponent<InputField>();
 
-        backBtn.GetComponent<Button>().onClick.AddListener(() =>
-        {
-            Destroy(accountPanel);
-        });
-    }
+    var bg = inputGO.GetComponent<Image>();
+    bg.color = Color.white;
 
+    var rt = inputGO.GetComponent<RectTransform>();
+    rt.sizeDelta = new Vector2(400, 60);
+    rt.anchoredPosition = new Vector2(0, 40);
+
+    // TEXT
+    var textGO = new GameObject("Text");
+    textGO.transform.SetParent(inputGO.transform, false);
+
+    var text = textGO.AddComponent<Text>();
+    text.font = font;
+    text.color = Color.black;
+    text.alignment = TextAnchor.MiddleLeft;
+
+    input.textComponent = text;
+
+    // PLACEHOLDER
+    var placeholderGO = new GameObject("Placeholder");
+    placeholderGO.transform.SetParent(inputGO.transform, false);
+
+    var placeholder = placeholderGO.AddComponent<Text>();
+    placeholder.font = font;
+    placeholder.text = "Vnesi ime...";
+    placeholder.color = Color.gray;
+
+    input.placeholder = placeholder;
+
+    // LOAD SAVE
+    input.text = PlayerPrefs.GetString(KEY_NAME, "Player1");
+
+    // SAVE on change (ne Enter-only!)
+    input.onValueChanged.AddListener(v =>
+    {
+        PlayerPrefs.SetString(KEY_NAME, v);
+    });
+
+    // SHOW NAME
+    MakeText(accountPanel, "CurrentName",
+        "IME: " + input.text, 28, Color.white,
+        new Vector2(0, 110), new Vector2(500, 40));
+
+    // BACK
+    var backBtn = MakeButton(accountPanel, "BackBtn", "NAZAJ",
+        new Vector2(0, -140), new Vector2(260, 60), Color.yellow);
+
+    backBtn.GetComponent<Button>().onClick.AddListener(() =>
+    {
+        Destroy(accountPanel);
+    });
+}
     private void BuildMenu()
     {
         if (menuPanel != null) Destroy(menuPanel.transform.root.gameObject);
@@ -134,14 +225,13 @@ public class StartMenuUI : MonoBehaviour
         menuPanel = MakePanel(canvasGO, "StartPanel", new Color(0.12f, 0.18f, 0.28f, 0.96f));
 
         MakeText(menuPanel, "Title", "JEZNE PTICE", 72, Color.white, new Vector2(0, 230), new Vector2(700, 100));
-        MakeText(menuPanel, "Subtitle", "Nasa poceni verzija Angry Birdsov.", 28, new Color(1f, 0.85f, 0.25f), new Vector2(0, 150), new Vector2(850, 60));
+        MakeText(menuPanel, "Subtitle", "Nasa poceni verzija Angry Birdsov. ", 28, new Color(1f, 0.85f, 0.25f), new Vector2(0, 150), new Vector2(850, 60));
 
         var playBtn = MakeButton(menuPanel, "PlayButton", "IGRAJ", new Vector2(0, 40), new Vector2(360, 70), new Color(1f, 0.78f, 0.12f));
         playBtn.GetComponent<Button>().onClick.AddListener(StartGame);
 
         var settingsBtn = MakeButton(menuPanel, "SettingsButton", "NASTAVITVE", new Vector2(0, -55), new Vector2(360, 65), new Color(0.8f, 0.8f, 0.8f));
-        settingsBtn.GetComponent<Button>().onClick.AddListener(() => ShowMock("Nastavitve", "To je zaenkrat samo vizualni gumb."));
-
+        settingsBtn.GetComponent<Button>().onClick.AddListener(OpenSettings);
         var accountBtn = MakeButton(menuPanel, "AccountButton", "ACCOUNT", new Vector2(0, -145), new Vector2(360, 65), new Color(0.8f, 0.8f, 0.8f));
         accountBtn.GetComponent<Button>().onClick.AddListener(OpenAccount);
     }

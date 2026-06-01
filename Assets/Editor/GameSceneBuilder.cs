@@ -105,7 +105,14 @@ public static class GameSceneBuilder
         var birdRb = bird.AddComponent<Rigidbody2D>();
         birdRb.bodyType = RigidbodyType2D.Kinematic;
         birdRb.gravityScale = 1.5f;
-        bird.AddComponent<BirdController>();
+        var birdController = bird.AddComponent<BirdController>();
+        birdController.hasSpecialAbility = true;
+        birdController.energyBurstRadius = 2.2f;
+        birdController.energyBurstImpulse = 2.8f;
+        birdController.energyBurstLift = 0.35f;
+        birdController.energyBurstVisualDuration = 0.35f;
+        birdController.energyBurstRingWidth = 0.08f;
+        birdController.energyBurstColor = new Color(1f, 0.25f, 0.05f, 0.85f);
         bird.tag = "Bird";
 
         birdQueue.testBird = bird;

@@ -2608,7 +2608,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BirdController
   destroyDelay: 3
-  hasSpecialAbility: 0
+  hasSpecialAbility: 1
+  energyBurstRadius: 2.2
+  energyBurstImpulse: 2.8
+  energyBurstLift: 0.35
+  energyBurstVisualDuration: 0.35
+  energyBurstRingWidth: 0.08
+  energyBurstColor: {r: 1, g: 0.25, b: 0.05, a: 0.85}
   launchSfx: {fileID: 8300000, guid: 5eaeb9659e6cb623c8545a88fb7535c2, type: 3}
 --- !u!50 &1773737517
 Rigidbody2D:

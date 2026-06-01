@@ -94,6 +94,19 @@ public static class GameSceneBuilder
         sc.birdQueue   = birdQueue;
         sc.mainCamera  = cam;
         birdQueue.slingshotSpawnPoint = slingshot.transform;
+        birdQueue.birdSequence.Add(QueuedBirdType.Red);
+        birdQueue.birdSequence.Add(QueuedBirdType.Blue);
+        birdQueue.birdSequence.Add(QueuedBirdType.Orange);
+        birdQueue.birdSequence.Add(QueuedBirdType.Red);
+        birdQueue.redBirdSprite = LoadSprite("Sprites/Birds/red_bird");
+        birdQueue.blueBirdSprite = LoadSprite("Sprites/Birds/blue_bird");
+        birdQueue.orangeBirdSprite = LoadSprite("Sprites/Birds/yellow_bird");
+        birdQueue.birdLaunchSfx = LoadAudioClip("Sounds/launch");
+        birdQueue.birdScale = 1.4f;
+        birdQueue.queueRowSpacing = 0.9f;
+        birdQueue.queueScreenPadding = 0.6f;
+        birdQueue.queueBackgroundColor = new Color(0f, 0f, 0f, 0.65f);
+        birdQueue.queueBackgroundPadding = new Vector2(0.7f, 0.45f);
         slingshot.AddComponent<TrajectoryPreview>();
 
         var bird = new GameObject("Bird_Red");
@@ -115,7 +128,8 @@ public static class GameSceneBuilder
         birdController.energyBurstColor = new Color(1f, 0.25f, 0.05f, 0.85f);
         bird.tag = "Bird";
 
-        birdQueue.testBird = bird;
+        bird.SetActive(false);
+        birdQueue.testBird = null;
 
         var pig = new GameObject("Pig_Test");
         pig.transform.position = new Vector3(3f, -2.7f, 0f);
@@ -282,6 +296,11 @@ public static class GameSceneBuilder
     private static Sprite LoadSprite(string path)
     {
         return AssetDatabase.LoadAssetAtPath<Sprite>($"Assets/{path}.png");
+    }
+
+    private static AudioClip LoadAudioClip(string path)
+    {
+        return AssetDatabase.LoadAssetAtPath<AudioClip>($"Assets/{path}.wav");
     }
 
     private static void SetupBandRenderer(LineRenderer lr)

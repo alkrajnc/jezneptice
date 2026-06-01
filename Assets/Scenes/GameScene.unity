@@ -193,10 +193,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BirdQueue
   birdPrefabs: []
+  birdSequence:
+  - 0
+  - 1
+  - 2
+  - 0
+  redBirdSprite: {fileID: 734426944737770961, guid: 8db00304e45e5e94896c46269c150261, type: 3}
+  blueBirdSprite: {fileID: 5207307725237250454, guid: dc5ee00ea498e354a8e5bc32c466a66c, type: 3}
+  orangeBirdSprite: {fileID: 3427520412619064086, guid: cf08352025ec47b4bbcfad5a437b04e5, type: 3}
+  birdLaunchSfx: {fileID: 8300000, guid: 5eaeb9659e6cb623c8545a88fb7535c2, type: 3}
+  birdScale: 1.4
   slingshotSpawnPoint: {fileID: 18390204}
   queueStartPoint: {fileID: 0}
   queueSpacing: 1.2
-  testBird: {fileID: 1773737515}
+  queueRowSpacing: 0.9
+  queueScreenPadding: 0.6
+  queueBackgroundColor: {r: 0, g: 0, b: 0, a: 0.65}
+  queueBackgroundPadding: {x: 0.7, y: 0.45}
+  testBird: {fileID: 0}
 --- !u!212 &18390203
 SpriteRenderer:
   serializedVersion: 2
@@ -2580,7 +2594,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1773737516
 MonoBehaviour:
   m_ObjectHideFlags: 0

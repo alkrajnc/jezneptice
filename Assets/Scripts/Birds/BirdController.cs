@@ -45,10 +45,23 @@ public class BirdController : MonoBehaviour
     // ── Unity callbacks ────────────────────────────────────────────
     void Awake()
     {
-        rb = GetComponent<Rigidbody2D>();
+        rb  = GetComponent<Rigidbody2D>();
         col = GetComponent<Collider2D>();
 
         SetPhysicsEnabled(false);
+    }
+
+    void Start()
+    {
+        // Ignoriraj trke z mejnimi zidovi — ptica leti skozi
+        int wallLayer = LayerMask.NameToLayer("BoundWall");
+        if (wallLayer < 0 || col == null) return;
+
+        foreach (var wallCol in FindObjectsByType<Collider2D>(FindObjectsSortMode.None))
+        {
+            if (wallCol.gameObject.layer == wallLayer)
+                Physics2D.IgnoreCollision(col, wallCol);
+        }
     }
 
     void Update()

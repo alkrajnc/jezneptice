@@ -12,6 +12,8 @@ public class StartMenuUI : MonoBehaviour
     private Font font;
     private GameObject settingsPanel;
     private GameObject accountPanel;
+    private GameObject levelPanel;
+    private GameObject mainMenuContent;
     private const string KEY_VOLUME = "VOLUME";
     private const string KEY_NAME = "PLAYER_NAME";
 
@@ -201,6 +203,11 @@ private void CreateVolumeSlider()
     private void BuildMenu()
     {
         if (menuPanel != null) Destroy(menuPanel.transform.root.gameObject);
+        settingsPanel = null;
+        accountPanel = null;
+        levelPanel = null;
+        mainMenuContent = null;
+        mockPanel = null;
 
         Time.timeScale = 0f;
 
@@ -224,20 +231,72 @@ private void CreateVolumeSlider()
 
         menuPanel = MakePanel(canvasGO, "StartPanel", new Color(0.12f, 0.18f, 0.28f, 0.96f));
 
-        MakeText(menuPanel, "Title", "JEZNE PTICE", 72, Color.white, new Vector2(0, 230), new Vector2(700, 100));
-        MakeText(menuPanel, "Subtitle", "Nasa poceni verzija Angry Birdsov. ", 28, new Color(1f, 0.85f, 0.25f), new Vector2(0, 150), new Vector2(850, 60));
+        mainMenuContent = new GameObject("MainMenuContent");
+        mainMenuContent.transform.SetParent(menuPanel.transform, false);
+        var contentRT = mainMenuContent.AddComponent<RectTransform>();
+        contentRT.anchorMin = Vector2.zero;
+        contentRT.anchorMax = Vector2.one;
+        contentRT.offsetMin = Vector2.zero;
+        contentRT.offsetMax = Vector2.zero;
 
-        var playBtn = MakeButton(menuPanel, "PlayButton", "IGRAJ", new Vector2(0, 40), new Vector2(360, 70), new Color(1f, 0.78f, 0.12f));
-        playBtn.GetComponent<Button>().onClick.AddListener(StartGame);
+        MakeText(mainMenuContent, "Title", "JEZNE PTICE", 72, Color.white, new Vector2(0, 230), new Vector2(700, 100));
+        MakeText(mainMenuContent, "Subtitle", "Nasa poceni verzija Angry Birdsov. ", 28, new Color(1f, 0.85f, 0.25f), new Vector2(0, 150), new Vector2(850, 60));
 
-        var settingsBtn = MakeButton(menuPanel, "SettingsButton", "NASTAVITVE", new Vector2(0, -55), new Vector2(360, 65), new Color(0.8f, 0.8f, 0.8f));
+        var playBtn = MakeButton(mainMenuContent, "PlayButton", "IGRAJ", new Vector2(0, 40), new Vector2(360, 70), new Color(1f, 0.78f, 0.12f));
+        playBtn.GetComponent<Button>().onClick.AddListener(OpenLevelSelect);
+
+        var settingsBtn = MakeButton(mainMenuContent, "SettingsButton", "NASTAVITVE", new Vector2(0, -55), new Vector2(360, 65), new Color(0.8f, 0.8f, 0.8f));
         settingsBtn.GetComponent<Button>().onClick.AddListener(OpenSettings);
-        var accountBtn = MakeButton(menuPanel, "AccountButton", "ACCOUNT", new Vector2(0, -145), new Vector2(360, 65), new Color(0.8f, 0.8f, 0.8f));
+        var accountBtn = MakeButton(mainMenuContent, "AccountButton", "ACCOUNT", new Vector2(0, -145), new Vector2(360, 65), new Color(0.8f, 0.8f, 0.8f));
         accountBtn.GetComponent<Button>().onClick.AddListener(OpenAccount);
+    }
+
+    private void OpenLevelSelect()
+    {
+        if (levelPanel != null) Destroy(levelPanel);
+        if (settingsPanel != null) Destroy(settingsPanel);
+        if (accountPanel != null) Destroy(accountPanel);
+        if (mockPanel != null) Destroy(mockPanel);
+        if (mainMenuContent != null) mainMenuContent.SetActive(false);
+
+        levelPanel = MakePanel(menuPanel, "LevelSelectPanel", new Color(0f, 0f, 0f, 0.76f));
+
+        MakeText(levelPanel, "Title", "IZBERI LEVEL", 52, Color.white,
+            new Vector2(0, 210), new Vector2(700, 80));
+
+        MakeText(levelPanel, "Subtitle", "Pot naprej se odpira po vrsti.", 26,
+            new Color(1f, 0.85f, 0.25f), new Vector2(0, 150), new Vector2(760, 50));
+
+        var level1Btn = MakeButton(levelPanel, "Level1Button", "LEVEL 1",
+            new Vector2(0, 55), new Vector2(320, 68), new Color(1f, 0.78f, 0.12f));
+        level1Btn.GetComponent<Button>().onClick.AddListener(() => StartLevel(1));
+
+        MakeText(levelPanel, "NextLevelHint", "LEVEL 2", 28,
+            new Color(0.55f, 0.55f, 0.55f), new Vector2(0, -35), new Vector2(320, 58));
+
+        MakeText(levelPanel, "NextLevelHint2", "LEVEL 3", 28,
+            new Color(0.38f, 0.38f, 0.38f), new Vector2(0, -115), new Vector2(320, 58));
+
+        var backBtn = MakeButton(levelPanel, "BackButton", "NAZAJ",
+            new Vector2(0, -220), new Vector2(260, 60), new Color(0.8f, 0.8f, 0.8f));
+        backBtn.GetComponent<Button>().onClick.AddListener(() =>
+        {
+            Destroy(levelPanel);
+            levelPanel = null;
+            if (mainMenuContent != null) mainMenuContent.SetActive(true);
+        });
     }
 
     private void StartGame()
     {
+        StartLevel(1);
+    }
+
+    private void StartLevel(int levelIndex)
+    {
+        PlayerPrefs.SetInt("SELECTED_LEVEL", levelIndex);
+        Debug.Log($"[StartMenuUI] Izbran level: {levelIndex}");
+
         Time.timeScale = 1f;
 
         if (GameManager.Instance != null)

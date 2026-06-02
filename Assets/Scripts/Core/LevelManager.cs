@@ -46,6 +46,14 @@ public class LevelManager : MonoBehaviour
         LevelData data = JsonUtility.FromJson<LevelData>(levelJson.text);
         Debug.Log("Loading level: " + data.levelId);
 
+        if (data.scoreTargets != null)
+        {
+            GameManager.Instance?.SetStarTargets(
+                data.scoreTargets.oneStar,
+                data.scoreTargets.twoStars,
+                data.scoreTargets.threeStars);
+        }
+
         activePigs.Clear();
 
         foreach (var pig in data.pigs)
@@ -87,6 +95,6 @@ public class LevelManager : MonoBehaviour
     {
         activePigs.Remove(pig);
         if (activePigs.Count == 0)
-            GameManager.Instance?.WinLevel();
+            Debug.Log("[LevelManager] Vsi pujski uniceni. Level se zakljuci, ko igralec porabi vse ptice.");
     }
 }

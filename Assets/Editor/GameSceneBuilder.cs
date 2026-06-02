@@ -32,7 +32,7 @@ public static class GameSceneBuilder
         EnsureTag("Pig");
         EnsureTag("Block");
 
-        new GameObject("GameManager").AddComponent<GameManager>();
+        new GameObject("GameManager").AddComponent<GameManager>().SetStarTargets(250, 350, 430);
         new GameObject("LevelManager").AddComponent<LevelManager>();
 
         var sky = new GameObject("Sky");
@@ -181,7 +181,9 @@ public static class GameSceneBuilder
         // Score text (top-left)
         gameUI.scoreText = MakeText(canvasGO, "ScoreText", "Score: 0", font, 28,
             new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 1),
-            new Vector2(20, -20), new Vector2(300, 50));
+            new Vector2(20, -20), new Vector2(360, 50));
+        gameUI.scoreText.alignment = TextAnchor.MiddleLeft;
+        gameUI.scoreText.gameObject.SetActive(false);
 
         // Win panel
         var winPanel = MakePanel(canvasGO, "WinPanel", new Color(0, 0.6f, 0, 0.85f));

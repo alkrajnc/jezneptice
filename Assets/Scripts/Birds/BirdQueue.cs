@@ -89,14 +89,14 @@ public class BirdQueue : MonoBehaviour
         UpdateQueueBackground();
 
         if (currentBird == null)
-            StartCoroutine(CheckLoseAfterDelay(3f));
+            StartCoroutine(FinishLevelAfterDelay(3f));
     }
 
-    private IEnumerator CheckLoseAfterDelay(float delay)
+    private IEnumerator FinishLevelAfterDelay(float delay)
     {
         yield return new WaitForSeconds(delay);
         if (GameManager.Instance?.currentState == GameState.Playing)
-            GameManager.Instance.LoseLevel();
+            GameManager.Instance.FinishLevelAfterBirdsUsed();
     }
 
     /// <summary>

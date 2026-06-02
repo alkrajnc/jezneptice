@@ -65,6 +65,14 @@ public static class GameSceneBuilder
         var groundRb = groundPhysics.AddComponent<Rigidbody2D>();
         groundRb.bodyType = RigidbodyType2D.Static;
 
+        // Nevidni zidovi levo in desno
+        CreateWall("WallLeft",  new Vector3(-22f, 0f, 0f), new Vector2(1f, 30f));
+        CreateWall("WallRight", new Vector3( 22f, 0f, 0f), new Vector2(1f, 30f));
+
+        // ScreenBounds script na GameManagerju
+        var gmGO = GameObject.Find("GameManager");
+        if (gmGO != null) gmGO.AddComponent<ScreenBounds>();
+
         var slingshot = new GameObject("Slingshot");
         slingshot.transform.position = new Vector3(-4f, -1.5f, 0f);
         var slingshotSR = slingshot.AddComponent<SpriteRenderer>();
@@ -279,6 +287,16 @@ public static class GameSceneBuilder
         rt.pivot = new Vector2(0.5f, 0.5f);
         rt.anchoredPosition = anchoredPos;
         rt.sizeDelta = sizeDelta;
+    }
+
+    private static void CreateWall(string name, Vector3 position, Vector2 size)
+    {
+        var wall = new GameObject(name);
+        wall.transform.position = position;
+        var col = wall.AddComponent<BoxCollider2D>();
+        col.size = size;
+        var rb = wall.AddComponent<Rigidbody2D>();
+        rb.bodyType = RigidbodyType2D.Static;
     }
 
     private static void EnsureTag(string tag)

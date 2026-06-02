@@ -326,11 +326,12 @@ public static class GameSceneBuilder
     private static void SetupBandRenderer(LineRenderer lr)
     {
         lr.positionCount = 2;
-        lr.startWidth    = 0.05f;
+        lr.startWidth    = 0.08f;
         lr.endWidth      = 0.05f;
-        lr.startColor    = new Color(0.4f, 0.25f, 0.1f);
-        lr.endColor      = new Color(0.4f, 0.25f, 0.1f);
+        lr.startColor    = new Color(0.55f, 0.27f, 0.07f);
+        lr.endColor      = new Color(0.35f, 0.15f, 0.05f);
         lr.useWorldSpace = true;
+        lr.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         lr.enabled       = false;
     }
 }

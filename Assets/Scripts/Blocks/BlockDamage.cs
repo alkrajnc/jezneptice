@@ -123,13 +123,29 @@ public class BlockDamage : MonoBehaviour
     private void DestroyBlock()
     {
         isDestroyed = true;
-        PlaySound(destroySFX);
+
+        if (destroySFX)
+            AudioSource.PlayClipAtPoint(destroySFX, transform.position);
+
+        foreach (var blockCollider in GetComponents<Collider2D>())
+            blockCollider.enabled = false;
+
+        var rb = GetComponent<Rigidbody2D>();
+        if (rb)
+        {
+            rb.linearVelocity = Vector2.zero;
+            rb.angularVelocity = 0f;
+            rb.simulated = false;
+        }
+
+        if (spriteRenderer)
+            spriteRenderer.enabled = false;
 
         if (destroyVFXPrefab)
             Instantiate(destroyVFXPrefab, transform.position, Quaternion.identity);
 
         GameManager.Instance?.AddScore(destroyScore);
-        Destroy(gameObject, 0.1f);
+        Destroy(gameObject);
     }
 
     // ─────────────────────────────────────────────

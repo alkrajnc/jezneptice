@@ -55,13 +55,28 @@ public class SlingshotController : MonoBehaviour
         slingshotCenter = (anchorLeft.position + anchorRight.position) / 2f;
         trajectory = GetComponent<TrajectoryPreview>();
 
+        // Nastavi širino gumice če je 0
+        SetupBandWidth(leftBand);
+        SetupBandWidth(rightBand);
+
         HideBands();
+        ShowBands();
     }
 
     void Update()
     {
         GameObject currentBird = birdQueue?.GetCurrentBird();
-        if (currentBird == null) return;
+
+        // Pokaži/skrij gumice glede na to ali je ptica na frači
+        if (currentBird == null)
+        {
+            HideBands();
+            return;
+        }
+
+        // Gumice vedno vidne in kažejo na ptico
+        ShowBands();
+        UpdateBandVisuals(currentBird.transform.position);
 
         Vector2 mouseWorld = ScreenToWorld(Input.mousePosition);
 
@@ -80,7 +95,6 @@ public class SlingshotController : MonoBehaviour
             if (Input.GetMouseButton(0))
             {
                 DragBird(currentBird);
-                UpdateBandVisuals(currentBird.transform.position);
 
                 if (trajectory != null)
                 {
@@ -146,6 +160,10 @@ public class SlingshotController : MonoBehaviour
         HideBands();
         birdQueue.OnBirdLaunched();
 
+        // Pokaži gumice za naslednjo ptico če obstaja
+        if (birdQueue.GetCurrentBird() != null)
+            ShowBands();
+
         Debug.Log($"[SlingshotController] Ptica izstreljena! Sila: {launchForce}, Kot: {Vector2.Angle(Vector2.right, launchDirection):F1}°");
     }
 
@@ -175,6 +193,20 @@ public class SlingshotController : MonoBehaviour
     }
 
     // ── Pomožne metode ─────────────────────────────────────────────
+
+    private void SetupBandWidth(LineRenderer lr)
+    {
+        if (lr == null) return;
+        lr.positionCount   = 2;
+        lr.startWidth      = 0.1f;
+        lr.endWidth        = 0.1f;
+        lr.widthMultiplier = 1f;
+        lr.useWorldSpace   = true;
+        // URP zahteva Sprites/Default material — default LineRenderer material ne dela
+        lr.material        = new Material(Shader.Find("Sprites/Default"));
+        lr.startColor      = new Color(0.55f, 0.27f, 0.07f);
+        lr.endColor        = new Color(0.35f, 0.15f, 0.05f);
+    }
 
     private Vector2 ScreenToWorld(Vector2 screenPos)
     {

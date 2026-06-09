@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-#pragma warning disable CS0618
 
 public class GameUI : MonoBehaviour
 {
@@ -90,8 +89,7 @@ public class GameUI : MonoBehaviour
             }
         }
 
-        if (scoreText != null)
-            scoreText.gameObject.SetActive(false);
+        scoreText?.gameObject.SetActive(false);
     }
 
     private void ConfigureResultText(Text text)

@@ -1,30 +1,17 @@
 using System.Collections;
 using UnityEngine;
 
-/// <summary>
-/// Stanje prasice glede na zdravje.
-/// </summary>
-public enum PigState
-{
-    Healthy,    // 100 % HP
-    Damaged,    // 50–99 % HP
-    Critical,   // 1–49 % HP
-    Dead        // 0 HP
-}
+public enum PigState { Healthy, Damaged, Critical, Dead }
 
-/// <summary>
-/// Krmilnik prasice – zdravje, poškodbe, animacije in točkovanje.
-/// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
 [RequireComponent(typeof(CircleCollider2D))]
 public class PigController : MonoBehaviour
 {
-
     [Header("Zdravje")]
     [SerializeField] private float maxHealth = 70f;
-    [SerializeField] private float damagedThreshold = 50f;  // Pod to vrednostjo → Damaged
-    [SerializeField] private float criticalThreshold = 25f;  // Pod to vrednostjo → Critical
-    [SerializeField] private readonly float minImpactDamage = 5f;
+    [SerializeField] private float damagedThreshold = 50f;
+    [SerializeField] private float criticalThreshold = 25f;
+    [SerializeField] private float minImpactDamage = 5f;
 
     [Header("Točke")]
     [SerializeField] private int killScore = 500;
@@ -38,7 +25,7 @@ public class PigController : MonoBehaviour
     [Header("Vizualni efekti")]
     [SerializeField] private GameObject hitVFXPrefab;
     [SerializeField] private Color damageFlashColor = Color.red;
-    [SerializeField] private readonly float flashDuration = 0.1f;
+    [SerializeField] private float flashDuration = 0.1f;
 
     [Header("Zvoki")]
     [SerializeField] private AudioClip hitSFX;
@@ -48,7 +35,7 @@ public class PigController : MonoBehaviour
     [SerializeField] private AudioClip collisionSFX;
 
     [Header("Obnašanje")]
-    [SerializeField] private readonly float idleSFXInterval = 8f;
+    [SerializeField] private float idleSFXInterval = 8f;
 
     private float currentHealth;
     private PigState currentState = PigState.Healthy;
@@ -58,7 +45,6 @@ public class PigController : MonoBehaviour
 
     private bool isDead = false;
     private float idleTimer;
-
     private Color originalColor;
 
     public float CurrentHealth => currentHealth;
@@ -75,12 +61,8 @@ public class PigController : MonoBehaviour
             damagedThreshold = maxHealth * 0.5f;
             criticalThreshold = maxHealth * 0.25f;
         }
-
-        if (scoreForKill > 0)
-            killScore = scoreForKill;
-
-        if (scoreForDamage > 0)
-            damageScore = scoreForDamage;
+        if (scoreForKill > 0) killScore = scoreForKill;
+        if (scoreForDamage > 0) damageScore = scoreForDamage;
 
         currentHealth = maxHealth;
         currentState = PigState.Healthy;
@@ -96,6 +78,8 @@ public class PigController : MonoBehaviour
             if (spriteHealthy != null)
                 spriteRenderer.sprite = spriteHealthy;
         }
+
+        idleTimer = Random.Range(idleSFXInterval * 0.5f, idleSFXInterval);
     }
 
     private void Awake()
@@ -112,7 +96,6 @@ public class PigController : MonoBehaviour
     private void Update()
     {
         if (isDead) return;
-
         idleTimer -= Time.deltaTime;
         if (idleTimer <= 0f)
         {
@@ -124,50 +107,44 @@ public class PigController : MonoBehaviour
     private void OnCollisionEnter2D(Collision2D col)
     {
         if (isDead) return;
-
         PlaySound(collisionSFX);
 
         float impactSpeed = col.relativeVelocity.magnitude;
-        float impactDamage = impactSpeed * 2f;
+        float impactDamage = Mathf.Clamp(impactSpeed * (maxHealth * 0.03f), 0f, maxHealth * 0.5f);
 
         if (impactDamage >= minImpactDamage)
             TakeDamage(impactDamage);
     }
 
-
-    /// <summary>Prasica sprejme poškodbo.</summary>
     public void TakeDamage(float amount)
     {
-
         if (isDead || amount <= 0f) return;
 
         float previousHealth = currentHealth;
         currentHealth = Mathf.Max(0f, currentHealth - amount);
 
-        // Točke za poškodbo
         int scoreGain = Mathf.RoundToInt((previousHealth - currentHealth) / maxHealth * damageScore);
         GameManager.Instance?.AddScore(scoreGain);
 
-        // Vizualni odziv
         SpawnHitVFX();
         StartCoroutine(FlashDamage());
         PlaySound(hitSFX);
 
-        // Posodobi stanje
-        UpdateState();
-
         if (currentHealth <= 0f)
+        {
             Die();
+            return;
+        }
+
+        UpdateState();
     }
 
-    /// <summary>Instantno uniči prasico (brez animacije).</summary>
     public void ForceKill()
     {
         currentHealth = 0f;
         Die();
     }
 
-    /// <summary>Ozdravi prasico (za testiranje).</summary>
     public void Heal(float amount)
     {
         if (isDead) return;
@@ -175,28 +152,17 @@ public class PigController : MonoBehaviour
         UpdateState();
     }
 
-    // ─────────────────────────────────────────────
-    // Stanja in sprites
-    // ─────────────────────────────────────────────
     private void UpdateState()
     {
         PigState newState;
-
-        if (currentHealth <= 0f)
-            newState = PigState.Dead;
-        else if (currentHealth < criticalThreshold)
-            newState = PigState.Critical;
-        else if (currentHealth < damagedThreshold)
-            newState = PigState.Damaged;
-        else
-            newState = PigState.Healthy;
+        if (currentHealth < criticalThreshold) newState = PigState.Critical;
+        else if (currentHealth < damagedThreshold) newState = PigState.Damaged;
+        else newState = PigState.Healthy;
 
         if (newState == currentState) return;
-
         currentState = newState;
         UpdateSprite();
 
-        // Zvok ob prehodu v poškodovano stanje
         if (currentState == PigState.Damaged || currentState == PigState.Critical)
             PlaySound(damagedSFX);
     }
@@ -204,12 +170,12 @@ public class PigController : MonoBehaviour
     private void UpdateSprite()
     {
         if (spriteRenderer == null) return;
-
         switch (currentState)
         {
             case PigState.Healthy: spriteRenderer.sprite = spriteHealthy; break;
             case PigState.Damaged: spriteRenderer.sprite = spriteDamaged; break;
             case PigState.Critical: spriteRenderer.sprite = spriteCritical; break;
+            case PigState.Dead: break;
         }
     }
 
@@ -232,10 +198,9 @@ public class PigController : MonoBehaviour
     private IEnumerator FlashDamage()
     {
         if (spriteRenderer == null) yield break;
-
         spriteRenderer.color = damageFlashColor;
         yield return new WaitForSeconds(flashDuration);
-        spriteRenderer.color = originalColor;
+        if (!isDead) spriteRenderer.color = originalColor;
     }
 
     private void SpawnHitVFX()
@@ -243,7 +208,6 @@ public class PigController : MonoBehaviour
         if (hitVFXPrefab)
             Instantiate(hitVFXPrefab, transform.position, Quaternion.identity);
     }
-
 
     private void PlaySound(AudioClip clip)
     {

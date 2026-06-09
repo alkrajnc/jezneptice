@@ -56,7 +56,17 @@ public class StartMenuUI : MonoBehaviour
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
-        MainMenu();
+        int izbranLevel = PlayerPrefs.GetInt("SELECTED_LEVEL", 0);
+
+        if (izbranLevel > 0)
+        {
+            StartLevel(izbranLevel);
+        }
+        else
+        {
+            BuildMenu();
+            BackgroundMusicController.instance?.PlayMenuMusic();
+        }
     }
 
     private void OpenSettings()
@@ -320,33 +330,63 @@ public class StartMenuUI : MonoBehaviour
         if (settingsPanel != null) Destroy(settingsPanel);
         if (accountPanel != null) Destroy(accountPanel);
         if (mockPanel != null) Destroy(mockPanel);
+        if (mainMenuContent != null) mainMenuContent.SetActive(false);
 
         levelPanel = MakePanel(menuPanel, "LevelSelectPanel", new Color(0f, 0f, 0f, 0.76f));
 
         MakeText(levelPanel, "Title", "IZBERI LEVEL", 52, Color.white,
-            new Vector2(0, 210), new Vector2(700, 80));
+            new Vector2(0, 260), new Vector2(700, 80)); // Premaknjeno malo višje za prostor
 
-        MakeText(levelPanel, "Subtitle", "Pot naprej se odpira po vrsti.", 26,
-            new Color(1f, 0.85f, 0.25f), new Vector2(0, 150), new Vector2(760, 50));
+        int maxOdklenjen = PlayerPrefs.GetInt("MAX_UNLOCKED_LEVEL", 1);
 
-        var level1Btn = MakeButton(levelPanel, "Level1Button", "LEVEL 1",
-            new Vector2(0, 55), new Vector2(320, 68), new Color(1f, 0.78f, 0.12f));
+        int l1BestScore = PlayerPrefs.GetInt("LEVEL_1_BEST_SCORE", 0);
+        int l1BestStars = PlayerPrefs.GetInt("LEVEL_1_BEST_STARS", 0);
+        string l1Text = $"LEVEL 1\n<size=20>Best: {l1BestScore} ({l1BestStars}★)</size>";
+
+        var level1Btn = MakeButton(levelPanel, "Level1Button", l1Text,
+            new Vector2(0, 110), new Vector2(360, 90), new Color(1f, 0.78f, 0.12f));
         level1Btn.GetComponent<Button>().onClick.AddListener(() => StartLevel(1));
 
-        var level2Btn = MakeButton(levelPanel, "Level2Button", "LEVEL 2",
-            new Vector2(0, -35), new Vector2(320, 68), new Color(1f, 0.72f, 0.1f));
-        level2Btn.GetComponent<Button>().onClick.AddListener(() => StartLevel(2));
+        level1Btn.GetComponentInChildren<Text>().supportRichText = true;
 
-        MakeText(levelPanel, "NextLevelHint2", "LEVEL 3", 28,
-            new Color(0.38f, 0.38f, 0.38f), new Vector2(0, -115), new Vector2(320, 58));
+
+        int l2BestScore = PlayerPrefs.GetInt("LEVEL_2_BEST_SCORE", 0);
+        int l2BestStars = PlayerPrefs.GetInt("LEVEL_2_BEST_STARS", 0);
+        string l2Text = $"LEVEL 2\n<size=20>Best: {l2BestScore} ({l2BestStars}★)</size>";
+
+        bool level2Odklenjen = maxOdklenjen >= 2;
+        Color l2Color = level2Odklenjen ? new Color(1f, 0.72f, 0.1f) : new Color(0.25f, 0.25f, 0.25f);
+
+        var level2Btn = MakeButton(levelPanel, "Level2Button", level2Odklenjen ? l2Text : "ZAKLENJENO",
+            new Vector2(0, 0), new Vector2(360, 90), l2Color);
+
+        level2Btn.GetComponentInChildren<Text>().supportRichText = true;
+
+        if (level2Odklenjen)
+        {
+            level2Btn.GetComponent<Button>().onClick.AddListener(() => StartLevel(2));
+        }
+        else
+        {
+            level2Btn.GetComponent<Button>().interactable = false;
+            level2Btn.GetComponentInChildren<Text>().color = Color.gray;
+        }
+
+
+        MakeText(levelPanel, "NextLevelHint2", "LEVEL 3 (Kmalu)", 28,
+            new Color(0.38f, 0.38f, 0.38f), new Vector2(0, -95), new Vector2(320, 58));
+
 
         var backBtn = MakeButton(levelPanel, "BackButton", "NAZAJ",
             new Vector2(0, -220), new Vector2(260, 60), new Color(0.8f, 0.8f, 0.8f));
         backBtn.GetComponent<Button>().onClick.AddListener(() =>
         {
-            ReturnToMainMenu(menuPanel);
+            Destroy(levelPanel);
+            levelPanel = null;
+            if (mainMenuContent != null) mainMenuContent.SetActive(true);
         });
     }
+
     private void StartGame()
     {
         StartLevel(1);

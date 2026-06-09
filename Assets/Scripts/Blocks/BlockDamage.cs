@@ -49,6 +49,7 @@ public class BlockDamage : MonoBehaviour
     private SpriteRenderer spriteRenderer;
     private AudioSource audioSource;
     private bool isDestroyed;
+    private Sprite fallbackSprite;
 
     // Odpornost glede na material (multiplikator poškodbe)
     private static readonly float[] MaterialResistance =
@@ -59,6 +60,42 @@ public class BlockDamage : MonoBehaviour
         0.15f  // Metal
     };
 
+    public void Configure(BlockMaterial materialType, int score, float health = -1f)
+    {
+        material = materialType;
+        destroyScore = score > 0 ? score : GetDefaultScore(materialType);
+        maxHealth = health > 0f ? health : GetDefaultHealth(materialType);
+        currentHealth = maxHealth;
+        isDestroyed = false;
+
+        if (spriteRenderer == null)
+            spriteRenderer = GetComponent<SpriteRenderer>();
+
+        if (spriteRenderer != null)
+        {
+            if (spriteIntact == null && spriteRenderer.sprite != null)
+                spriteIntact = spriteRenderer.sprite;
+
+            fallbackSprite = spriteIntact != null ? spriteIntact : spriteRenderer.sprite;
+            spriteRenderer.enabled = true;
+            spriteRenderer.color = GetMaterialColor(materialType);
+            SetDamageSprite(spriteIntact);
+        }
+
+        foreach (var blockCollider in GetComponentsInChildren<Collider2D>())
+            blockCollider.enabled = true;
+
+        var blockRb = GetComponent<Rigidbody2D>();
+        if (blockRb != null)
+        {
+            blockRb.simulated = true;
+            blockRb.bodyType = RigidbodyType2D.Dynamic;
+            blockRb.linearVelocity = Vector2.zero;
+            blockRb.angularVelocity = 0f;
+            blockRb.mass = GetDefaultMass(materialType);
+        }
+    }
+
     // ─────────────────────────────────────────────
     // Unity
     // ─────────────────────────────────────────────
@@ -68,8 +105,14 @@ public class BlockDamage : MonoBehaviour
         audioSource = GetComponent<AudioSource>();
         currentHealth = maxHealth;
 
-        if (spriteRenderer && spriteIntact)
-            spriteRenderer.sprite = spriteIntact;
+        if (spriteRenderer != null)
+        {
+            if (spriteIntact == null && spriteRenderer.sprite != null)
+                spriteIntact = spriteRenderer.sprite;
+
+            fallbackSprite = spriteIntact != null ? spriteIntact : spriteRenderer.sprite;
+            SetDamageSprite(spriteIntact);
+        }
     }
 
     private void OnCollisionEnter2D(Collision2D col)
@@ -110,11 +153,11 @@ public class BlockDamage : MonoBehaviour
 
         float pct = currentHealth / maxHealth;
         if (pct > 0.6f)
-            spriteRenderer.sprite = spriteIntact;
+            SetDamageSprite(spriteIntact);
         else if (pct > 0.25f)
-            spriteRenderer.sprite = spriteCracked;
+            SetDamageSprite(spriteCracked);
         else
-            spriteRenderer.sprite = spriteBroken;
+            SetDamageSprite(spriteBroken);
     }
 
     // ─────────────────────────────────────────────
@@ -127,7 +170,7 @@ public class BlockDamage : MonoBehaviour
         if (destroySFX)
             AudioSource.PlayClipAtPoint(destroySFX, transform.position);
 
-        foreach (var blockCollider in GetComponents<Collider2D>())
+        foreach (var blockCollider in GetComponentsInChildren<Collider2D>())
             blockCollider.enabled = false;
 
         var rb = GetComponent<Rigidbody2D>();
@@ -148,6 +191,15 @@ public class BlockDamage : MonoBehaviour
         Destroy(gameObject);
     }
 
+    private void SetDamageSprite(Sprite nextSprite)
+    {
+        if (spriteRenderer == null) return;
+
+        Sprite visibleSprite = nextSprite != null ? nextSprite : fallbackSprite;
+        if (visibleSprite != null)
+            spriteRenderer.sprite = visibleSprite;
+    }
+
     // ─────────────────────────────────────────────
     // Flash efekt
     // ─────────────────────────────────────────────
@@ -164,5 +216,49 @@ public class BlockDamage : MonoBehaviour
     {
         if (audioSource && clip)
             audioSource.PlayOneShot(clip);
+    }
+
+    private int GetDefaultScore(BlockMaterial materialType)
+    {
+        switch (materialType)
+        {
+            case BlockMaterial.Stone: return 260;
+            case BlockMaterial.Ice: return 180;
+            case BlockMaterial.Metal: return 320;
+            default: return 200;
+        }
+    }
+
+    private float GetDefaultHealth(BlockMaterial materialType)
+    {
+        switch (materialType)
+        {
+            case BlockMaterial.Stone: return 95f;
+            case BlockMaterial.Ice: return 45f;
+            case BlockMaterial.Metal: return 130f;
+            default: return 60f;
+        }
+    }
+
+    private float GetDefaultMass(BlockMaterial materialType)
+    {
+        switch (materialType)
+        {
+            case BlockMaterial.Stone: return 1.8f;
+            case BlockMaterial.Ice: return 0.75f;
+            case BlockMaterial.Metal: return 2.4f;
+            default: return 1f;
+        }
+    }
+
+    private Color GetMaterialColor(BlockMaterial materialType)
+    {
+        switch (materialType)
+        {
+            case BlockMaterial.Stone: return new Color(0.48f, 0.48f, 0.52f, 1f);
+            case BlockMaterial.Ice: return new Color(0.55f, 0.9f, 1f, 0.92f);
+            case BlockMaterial.Metal: return new Color(0.42f, 0.43f, 0.46f, 1f);
+            default: return new Color(0.72f, 0.42f, 0.2f, 1f);
+        }
     }
 }

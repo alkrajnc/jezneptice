@@ -4,7 +4,8 @@ using UnityEngine;
 public enum BirdSpecialAbility
 {
     EnergyBurst,
-    SpeedBoost
+    SpeedBoost,
+    SplitShot
 }
 
 /// <summary>
@@ -53,6 +54,17 @@ public class BirdController : MonoBehaviour
     public float speedBoostStreakLength = 1.7f;
     public float speedBoostStreakWidth = 0.09f;
     public Color speedBoostColor = new Color(1f, 0.9f, 0.05f, 0.9f);
+
+    [Header("Modra ptica - razdelitev")]
+    public float splitSpreadAngle = 15f;
+    public float splitMinSpeed = 7f;
+    public float splitSpawnOffset = 0.55f;
+
+    [Header("Modra ptica - vizual")]
+    public float splitVisualDuration = 0.35f;
+    public float splitVisualWidth = 0.07f;
+    public Color splitVisualColor = new Color(0.2f, 0.55f, 1f, 0.9f);
+
     [Tooltip("Ali je bila posebna moč že aktivirana")]
     private bool abilityUsed = false;
 
@@ -166,6 +178,14 @@ public class BirdController : MonoBehaviour
             return;
         }
 
+        if (specialAbilityType == BirdSpecialAbility.SplitShot)
+        {
+            ApplySplitShot();
+            ShowSplitVisual();
+            Debug.Log("[BirdController] Modra ptica: razdelitev!");
+            return;
+        }
+
         ApplyEnergyBurst();
         ShowEnergyBurstVisual();
         Debug.Log("[BirdController] Rdeca ptica: sunek energije!");
@@ -217,6 +237,145 @@ public class BirdController : MonoBehaviour
     private void ShowSpeedBoostVisual(Vector2 direction)
     {
         StartCoroutine(AnimateSpeedBoostStreak(direction));
+    }
+
+    private void ApplySplitShot()
+    {
+        Vector2 velocity = rb.linearVelocity;
+        Vector2 direction = velocity.sqrMagnitude > 0.01f
+            ? velocity.normalized
+            : Vector2.right;
+
+        float speed = Mathf.Max(velocity.magnitude, splitMinSpeed);
+        Vector2 centerVelocity = direction * speed;
+        Vector2 upperVelocity = RotateVector(centerVelocity, splitSpreadAngle);
+        Vector2 lowerVelocity = RotateVector(centerVelocity, -splitSpreadAngle);
+        Vector2 perpendicular = new Vector2(-direction.y, direction.x);
+
+        hasSpecialAbility = false;
+        rb.linearVelocity = centerVelocity;
+        GameObject upperClone = SpawnSplitClone(upperVelocity, perpendicular * splitSpawnOffset);
+        GameObject lowerClone = SpawnSplitClone(lowerVelocity, -perpendicular * splitSpawnOffset);
+        IgnoreBirdCollision(upperClone, lowerClone);
+    }
+
+    private GameObject SpawnSplitClone(Vector2 velocity, Vector2 offset)
+    {
+        GameObject clone = Instantiate(gameObject, transform.position + (Vector3)offset, transform.rotation);
+        clone.name = "Bird_Blue_Split";
+
+        IgnoreBirdCollision(gameObject, clone);
+
+        BirdController controller = clone.GetComponent<BirdController>();
+        if (controller != null)
+            controller.ConfigureAsSplitClone(velocity);
+
+        return clone;
+    }
+
+    private void IgnoreBirdCollision(GameObject first, GameObject second)
+    {
+        if (first == null || second == null)
+            return;
+
+        Collider2D firstCollider = first.GetComponent<Collider2D>();
+        Collider2D secondCollider = second.GetComponent<Collider2D>();
+
+        if (firstCollider != null && secondCollider != null)
+            Physics2D.IgnoreCollision(firstCollider, secondCollider);
+    }
+
+    private void ConfigureAsSplitClone(Vector2 velocity)
+    {
+        rb = GetComponent<Rigidbody2D>();
+        col = GetComponent<Collider2D>();
+
+        hasSpecialAbility = false;
+        abilityUsed = true;
+        specialAbilityType = BirdSpecialAbility.SplitShot;
+        CurrentState = BirdState.Flying;
+
+        SetPhysicsEnabled(true);
+        rb.linearVelocity = velocity;
+        rb.angularVelocity = Random.Range(-120f, 120f);
+
+        StartCoroutine(DieAfterMaxFlightTime());
+    }
+
+    private Vector2 RotateVector(Vector2 vector, float degrees)
+    {
+        float radians = degrees * Mathf.Deg2Rad;
+        float sin = Mathf.Sin(radians);
+        float cos = Mathf.Cos(radians);
+
+        return new Vector2(
+            vector.x * cos - vector.y * sin,
+            vector.x * sin + vector.y * cos
+        );
+    }
+
+    private void ShowSplitVisual()
+    {
+        StartCoroutine(AnimateSplitLines());
+    }
+
+    private IEnumerator AnimateSplitLines()
+    {
+        Vector2 velocity = rb.linearVelocity;
+        Vector2 direction = velocity.sqrMagnitude > 0.01f
+            ? velocity.normalized
+            : Vector2.right;
+
+        Vector2[] directions =
+        {
+            RotateVector(direction, splitSpreadAngle),
+            direction,
+            RotateVector(direction, -splitSpreadAngle)
+        };
+
+        GameObject effect = new GameObject("BlueSplitEffect");
+        Destroy(effect, splitVisualDuration + 0.1f);
+
+        LineRenderer[] lines = new LineRenderer[directions.Length];
+        for (int i = 0; i < directions.Length; i++)
+        {
+            GameObject lineObject = new GameObject($"BlueSplitLine_{i}");
+            lineObject.transform.SetParent(effect.transform);
+
+            LineRenderer line = lineObject.AddComponent<LineRenderer>();
+            line.useWorldSpace = true;
+            line.positionCount = 2;
+            line.sortingOrder = 32;
+            line.startWidth = splitVisualWidth;
+            line.endWidth = 0f;
+            line.material = new Material(Shader.Find("Sprites/Default"));
+            lines[i] = line;
+        }
+
+        Vector3 origin = transform.position;
+        float duration = Mathf.Max(0.01f, splitVisualDuration);
+        float elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            Color color = splitVisualColor;
+            color.a = Mathf.Lerp(splitVisualColor.a, 0f, t);
+
+            for (int i = 0; i < lines.Length; i++)
+            {
+                Vector3 end = origin + (Vector3)directions[i] * Mathf.Lerp(0.2f, 1.4f, t);
+                lines[i].startColor = color;
+                lines[i].endColor = new Color(color.r, color.g, color.b, 0f);
+                lines[i].SetPosition(0, origin);
+                lines[i].SetPosition(1, end);
+            }
+
+            yield return null;
+        }
+
+        Destroy(effect);
     }
 
     private IEnumerator AnimateSpeedBoostStreak(Vector2 direction)

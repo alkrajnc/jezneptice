@@ -23,7 +23,7 @@ public class PigController : MonoBehaviour
     // Inšpektor
     // ─────────────────────────────────────────────
     [Header("Zdravje")]
-    [SerializeField] private float maxHealth = 100f;
+    [SerializeField] private float maxHealth = 85f;
     [SerializeField] private float damagedThreshold = 50f;  // Pod to vrednostjo → Damaged
     [SerializeField] private float criticalThreshold = 25f;  // Pod to vrednostjo → Critical
     [SerializeField] private float minImpactDamage = 5f;   // Manjši udarci se ignorirajo

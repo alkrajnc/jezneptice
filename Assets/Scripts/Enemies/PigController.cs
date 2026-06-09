@@ -19,14 +19,12 @@ public enum PigState
 [RequireComponent(typeof(CircleCollider2D))]
 public class PigController : MonoBehaviour
 {
-    // ─────────────────────────────────────────────
-    // Inšpektor
-    // ─────────────────────────────────────────────
+
     [Header("Zdravje")]
-    [SerializeField] private float maxHealth = 85f;
+    [SerializeField] private float maxHealth = 70f;
     [SerializeField] private float damagedThreshold = 50f;  // Pod to vrednostjo → Damaged
     [SerializeField] private float criticalThreshold = 25f;  // Pod to vrednostjo → Critical
-    [SerializeField] private float minImpactDamage = 5f;   // Manjši udarci se ignorirajo
+    [SerializeField] private readonly float minImpactDamage = 5f;
 
     [Header("Točke")]
     [SerializeField] private int killScore = 500;
@@ -38,10 +36,9 @@ public class PigController : MonoBehaviour
     [SerializeField] private Sprite spriteCritical;
 
     [Header("Vizualni efekti")]
-    [SerializeField] private GameObject deathVFXPrefab;
     [SerializeField] private GameObject hitVFXPrefab;
     [SerializeField] private Color damageFlashColor = Color.red;
-    [SerializeField] private float flashDuration = 0.1f;
+    [SerializeField] private readonly float flashDuration = 0.1f;
 
     [Header("Zvoki")]
     [SerializeField] private AudioClip hitSFX;
@@ -51,11 +48,8 @@ public class PigController : MonoBehaviour
     [SerializeField] private AudioClip collisionSFX;
 
     [Header("Obnašanje")]
-    [SerializeField] private float idleSFXInterval = 8f;  // Sekunde med naključnimi zvoki
+    [SerializeField] private readonly float idleSFXInterval = 8f;
 
-    // ─────────────────────────────────────────────
-    // Interno stanje
-    // ─────────────────────────────────────────────
     private float currentHealth;
     private PigState currentState = PigState.Healthy;
     private SpriteRenderer spriteRenderer;
@@ -65,12 +59,8 @@ public class PigController : MonoBehaviour
     private bool isDead = false;
     private float idleTimer;
 
-    // Barva ob normalnem stanju (za flash efekt)
     private Color originalColor;
 
-    // ─────────────────────────────────────────────
-    // Javne lastnosti
-    // ─────────────────────────────────────────────
     public float CurrentHealth => currentHealth;
     public float MaxHealth => maxHealth;
     public PigState State => currentState;
@@ -108,10 +98,6 @@ public class PigController : MonoBehaviour
         }
     }
 
-
-    // ─────────────────────────────────────────────
-    // Unity callbacks
-    // ─────────────────────────────────────────────
     private void Awake()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
@@ -127,7 +113,6 @@ public class PigController : MonoBehaviour
     {
         if (isDead) return;
 
-        // Naključni zvoki žive prasice
         idleTimer -= Time.deltaTime;
         if (idleTimer <= 0f)
         {
@@ -149,9 +134,6 @@ public class PigController : MonoBehaviour
             TakeDamage(impactDamage);
     }
 
-    // ─────────────────────────────────────────────
-    // Javne metode
-    // ─────────────────────────────────────────────
 
     /// <summary>Prasica sprejme poškodbo.</summary>
     public void TakeDamage(float amount)
@@ -231,34 +213,22 @@ public class PigController : MonoBehaviour
         }
     }
 
-    // ─────────────────────────────────────────────
-    // Smrt
-    // ─────────────────────────────────────────────
     private void Die()
     {
         if (isDead) return;
         isDead = true;
-
         PlaySound(deathSFX);
 
-        // Vizualni efekt smrti
-        if (deathVFXPrefab)
-            Instantiate(deathVFXPrefab, transform.position, Quaternion.identity);
+        var vfx = new GameObject("PigDeathVFX");
+        vfx.transform.position = transform.position;
+        vfx.AddComponent<PigDeathVFX>();
 
-        // Točke za uboj
         GameManager.Instance?.AddScore(killScore);
-
-        // Obvesti LevelManager
         LevelManager.Instance?.OnPigDestroyed(this);
-
-        // Skrij sprite, počakaj in uniči
         if (spriteRenderer) spriteRenderer.enabled = false;
         Destroy(gameObject, 0.3f);
     }
 
-    // ─────────────────────────────────────────────
-    // Vizualni efekti
-    // ─────────────────────────────────────────────
     private IEnumerator FlashDamage()
     {
         if (spriteRenderer == null) yield break;
@@ -274,21 +244,15 @@ public class PigController : MonoBehaviour
             Instantiate(hitVFXPrefab, transform.position, Quaternion.identity);
     }
 
-    // ─────────────────────────────────────────────
-    // Zvok
-    // ─────────────────────────────────────────────
+
     private void PlaySound(AudioClip clip)
     {
         if (audioSource && clip)
             audioSource.PlayOneShot(clip);
     }
 
-    // ─────────────────────────────────────────────
-    // Debug vizualizacija
-    // ─────────────────────────────────────────────
     private void OnDrawGizmosSelected()
     {
-        // Prikaz HP v Scene oknu
 #if UNITY_EDITOR
         UnityEditor.Handles.Label(
             transform.position + Vector3.up * 0.8f,

@@ -38,4 +38,5 @@ public class PigData
     public float health;
     public int killScore;
     public int damageScore;
+    public PigType type = PigType.Brkonja;
 }

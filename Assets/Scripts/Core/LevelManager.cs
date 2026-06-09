@@ -10,7 +10,8 @@ public class LevelManager : MonoBehaviour
     public TextAsset levelJson;
 
     [Header("Prefabi")]
-    public GameObject pigPrefab;
+    public GameObject smallPigPrefab;
+    public GameObject bigPigPrefab;
     public GameObject woodBlockPrefab;
     public GameObject stoneBlockPrefab;
     public GameObject iceBlockPrefab;
@@ -80,7 +81,6 @@ public class LevelManager : MonoBehaviour
     {
         if (data == null) return;
 
-        GameObject pigTemplate = CreateTemplateCopy(FindPigTemplate());
         GameObject blockTemplate = CreateTemplateCopy(FindBlockTemplate());
 
         ClearCurrentLevelObjects();
@@ -105,13 +105,11 @@ public class LevelManager : MonoBehaviour
         if (data.pigs != null)
         {
             foreach (var pig in data.pigs)
-                CreatePig(pig, pigTemplate);
+                CreatePig(pig, CreateTemplateCopy(FindPigTemplate(pig.type)));
         }
 
         Debug.Log($"[LevelManager] Level {data.levelId} nalozen. Pujskov: {activePigs.Count}");
 
-        if (pigTemplate != null)
-            Destroy(pigTemplate);
         if (blockTemplate != null)
             Destroy(blockTemplate);
     }
@@ -135,12 +133,22 @@ public class LevelManager : MonoBehaviour
             Destroy(block.gameObject);
     }
 
-    private GameObject FindPigTemplate()
+    private GameObject FindPigTemplate(PigType type)
     {
-        if (pigPrefab != null) return pigPrefab;
-        var pig = FindFirstObjectByType<PigController>();
-        return pig != null ? pig.gameObject : null;
+        if (type == PigType.Brkonja)
+        {
+            if (smallPigPrefab != null) return smallPigPrefab;
+            var pig = FindFirstObjectByType<PigController>();
+            return pig != null ? pig.gameObject : null;
+        }
+        else
+        {
+            if (bigPigPrefab != null) return bigPigPrefab;
+            var pig = FindFirstObjectByType<PigController>();
+            return pig != null ? pig.gameObject : null;
+        }
     }
+
 
     private GameObject FindBlockTemplate()
     {

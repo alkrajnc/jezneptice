@@ -39,9 +39,19 @@ public class StartMenuUI : MonoBehaviour
     }
 
     private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+{
+    int izbranLevel = PlayerPrefs.GetInt("SELECTED_LEVEL", 0);
+
+    if (izbranLevel > 0)
+    {
+        StartLevel(izbranLevel);
+    }
+    else
     {
         BuildMenu();
+        BackgroundMusicController.instance?.PlayMenuMusic();
     }
+}
 
     private void OpenSettings()
 {

@@ -72,6 +72,8 @@ public class GameUI : MonoBehaviour
 
     public void RestartLevel()
     {
+        PlayerPrefs.SetInt("SELECTED_LEVEL", 0); 
+        PlayerPrefs.Save();
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 

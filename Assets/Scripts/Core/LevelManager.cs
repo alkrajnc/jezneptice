@@ -35,6 +35,7 @@ public class LevelManager : MonoBehaviour
 
     public void StartSelectedLevel(int levelIndex)
     {
+        BackgroundMusicController.instance?.PlayLevelMusic();
         if (levelIndex <= 1)
         {
             GameManager.Instance?.SetStarTargets(250, 350, 430);

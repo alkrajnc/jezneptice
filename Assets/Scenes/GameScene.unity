@@ -1095,8 +1095,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LevelManager
   levelJson: {fileID: 0}
-  smallPigPrefab: {fileID: 721841723}
-  bigPigPrefab: {fileID: 1299467542}
+  smallPigPrefab: {fileID: 2084076374183681846, guid: 115d1802aafbc5d43906a8bcda4bd0cf, type: 3}
+  bigPigPrefab: {fileID: 2266620650740335440, guid: fee795d72e5194f4f8e9583a45afe6fa, type: 3}
   woodBlockPrefab: {fileID: 7432143328852416025, guid: 4176e1c13e353d8a1b41be80822437b3, type: 3}
   stoneBlockPrefab: {fileID: 7432143328852416025, guid: 0018d4f37908e7258837a4f3e90a2ee6, type: 3}
   iceBlockPrefab: {fileID: 7432143328852416025, guid: de986f1b94704b278b821deeb1eaec97, type: 3}
@@ -1115,11 +1115,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &721841723 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2084076374183681846, guid: 115d1802aafbc5d43906a8bcda4bd0cf, type: 3}
-  m_PrefabInstance: {fileID: 1942562574}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &741840826
 GameObject:
   m_ObjectHideFlags: 0
@@ -1804,11 +1799,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
---- !u!1 &1299467542 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 2266620650740335440, guid: fee795d72e5194f4f8e9583a45afe6fa, type: 3}
-  m_PrefabInstance: {fileID: 6670810293929674246}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1372881018
 GameObject:
   m_ObjectHideFlags: 0

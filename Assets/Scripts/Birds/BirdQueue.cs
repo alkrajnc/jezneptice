@@ -241,10 +241,20 @@ public class BirdQueue : MonoBehaviour
 
         BirdController controller = bird.AddComponent<BirdController>();
         controller.launchSfx = birdLaunchSfx;
-        controller.hasSpecialAbility = type == QueuedBirdType.Red || type == QueuedBirdType.Orange;
-        controller.specialAbilityType = type == QueuedBirdType.Orange
-            ? BirdSpecialAbility.SpeedBoost
-            : BirdSpecialAbility.EnergyBurst;
+        controller.hasSpecialAbility = true;
+
+        switch (type)
+        {
+            case QueuedBirdType.Blue:
+                controller.specialAbilityType = BirdSpecialAbility.SplitShot;
+                break;
+            case QueuedBirdType.Orange:
+                controller.specialAbilityType = BirdSpecialAbility.SpeedBoost;
+                break;
+            default:
+                controller.specialAbilityType = BirdSpecialAbility.EnergyBurst;
+                break;
+        }
 
         bird.AddComponent<AudioSource>();
         return bird;

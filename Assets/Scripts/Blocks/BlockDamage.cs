@@ -173,6 +173,9 @@ public class BlockDamage : MonoBehaviour
         foreach (var blockCollider in GetComponentsInChildren<Collider2D>())
             blockCollider.enabled = false;
 
+        foreach (var renderer in GetComponentsInChildren<Renderer>())
+            renderer.enabled = false;
+
         var rb = GetComponent<Rigidbody2D>();
         if (rb)
         {
@@ -188,6 +191,8 @@ public class BlockDamage : MonoBehaviour
             Instantiate(destroyVFXPrefab, transform.position, Quaternion.identity);
 
         GameManager.Instance?.AddScore(destroyScore);
+
+        gameObject.SetActive(false);
         Destroy(gameObject);
     }
 

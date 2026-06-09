@@ -64,7 +64,7 @@ public class StartMenuUI : MonoBehaviour
         }
         else
         {
-            BuildMenu();
+            MainMenu();
             BackgroundMusicController.instance?.PlayMenuMusic();
         }
     }

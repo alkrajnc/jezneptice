@@ -74,13 +74,34 @@ public class GameManager : MonoBehaviour
     }
 
     public void WinLevel()
+{
+    if (currentState != GameState.Playing) return;
+    currentState = GameState.LevelComplete;
+    LastStarRating = CalculateStarRating(Score);
+    Debug.Log($"Level Complete! Stars: {LastStarRating}");
+    GameUI.Instance?.ShowWin(Score, LastStarRating);
+
+    
+    int trenutniLevel = PlayerPrefs.GetInt("SELECTED_LEVEL", 1);
+
+    string scoreKey = $"LEVEL_{trenutniLevel}_BEST_SCORE";
+    int prejsnjiBestScore = PlayerPrefs.GetInt(scoreKey, 0);
+    
+    if (Score > prejsnjiBestScore)
     {
-        if (currentState != GameState.Playing) return;
-        currentState = GameState.LevelComplete;
-        LastStarRating = CalculateStarRating(Score);
-        Debug.Log($"Level Complete! Stars: {LastStarRating}");
-        GameUI.Instance?.ShowWin(Score, LastStarRating);
+        PlayerPrefs.SetInt(scoreKey, Score);
+        PlayerPrefs.SetInt($"LEVEL_{trenutniLevel}_BEST_STARS", LastStarRating);
     }
+
+    int maxOdklenjenLevel = PlayerPrefs.GetInt("MAX_UNLOCKED_LEVEL", 1);
+    if (trenutniLevel == maxOdklenjenLevel)
+    {
+        PlayerPrefs.SetInt("MAX_UNLOCKED_LEVEL", trenutniLevel + 1);
+    }
+
+    // Shranimo spremembe na disk
+    PlayerPrefs.Save();
+}
 
     public void LoseLevel()
     {

@@ -177,6 +177,13 @@ MonoBehaviour:
   minLaunchForce: 5
   leftBand: {fileID: 1645471039}
   rightBand: {fileID: 1678228828}
+  bandSegments: 12
+  bandSag: 0.12
+  widthAtAnchor: 0.12
+  widthAtBird: 0.06
+  colorRelaxed: {r: 0.55, g: 0.27, b: 0.07, a: 1}
+  colorTense: {r: 0.95, g: 0.25, b: 0.05, a: 1}
+  snapDuration: 0.3
   birdQueue: {fileID: 18390202}
   mainCamera: {fileID: 558175762}
   launchSfx: {fileID: 8300000, guid: e07250961808c28e8ae6e17bb4b2a7e2, type: 3}
@@ -204,6 +211,8 @@ MonoBehaviour:
   queueSpacing: 1.2
   queueRowSpacing: 0.9
   queueScreenPadding: 0.6
+  maxQueueColumns: 3
+  queueTopOffset: 0.9
   queueBackgroundColor: {r: 0, g: 0, b: 0, a: 0.65}
   queueBackgroundPadding: {x: 0.7, y: 0.45}
   testBird: {fileID: 0}
@@ -2439,7 +2448,7 @@ Transform:
   m_GameObject: {fileID: 1645471038}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.3, y: 0.5, z: 0}
+  m_LocalPosition: {x: -0.15, y: 0.58, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2590,7 +2599,7 @@ Transform:
   m_GameObject: {fileID: 1678228827}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.3, y: 0.5, z: 0}
+  m_LocalPosition: {x: 0.23, y: 0.58, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -2766,6 +2775,12 @@ MonoBehaviour:
   speedBoostStreakLength: 1.7
   speedBoostStreakWidth: 0.09
   speedBoostColor: {r: 1, g: 0.9, b: 0.05, a: 0.9}
+  splitSpreadAngle: 15
+  splitMinSpeed: 7
+  splitSpawnOffset: 0.55
+  splitVisualDuration: 0.35
+  splitVisualWidth: 0.07
+  splitVisualColor: {r: 0.2, g: 0.55, b: 1, a: 0.9}
   launchSfx: {fileID: 8300000, guid: 5eaeb9659e6cb623c8545a88fb7535c2, type: 3}
 --- !u!50 &1773737517
 Rigidbody2D:

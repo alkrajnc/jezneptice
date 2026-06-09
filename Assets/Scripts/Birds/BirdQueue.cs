@@ -38,6 +38,8 @@ public class BirdQueue : MonoBehaviour
     public float queueSpacing = 1.2f;
     public float queueRowSpacing = 0.9f;
     public float queueScreenPadding = 0.6f;
+    public int maxQueueColumns = 3;
+    public float queueTopOffset = 0.9f;
 
     [Header("Ozadje queue-ja")]
     public Color queueBackgroundColor = new Color(0f, 0f, 0f, 0.65f);
@@ -52,23 +54,30 @@ public class BirdQueue : MonoBehaviour
     private List<GameObject> spawnedQueueBirds = new List<GameObject>();
     private GameObject currentBird;
     private SpriteRenderer queueBackgroundRenderer;
+    private bool queueInitialized = false;
 
     void Start()
     {
+        if (queueInitialized || currentBird != null || birdQueue.Count > 0 || spawnedQueueBirds.Count > 0)
+            return;
+
         if (birdSequence.Count > 0)
         {
             SpawnGeneratedQueue();
             LoadNextBird();
+            queueInitialized = true;
             return;
         }
 
         if (testBird != null)
         {
             currentBird = testBird;
+            queueInitialized = true;
             return;
         }
         SpawnQueue();
         LoadNextBird();
+        queueInitialized = true;
     }
 
     // ── Javne metode ───────────────────────────────────────────────
@@ -86,7 +95,7 @@ public class BirdQueue : MonoBehaviour
         currentBird = null;
         AdvanceQueue();
         LoadNextBird();
-        UpdateQueueBackground();
+        RepositionQueueBirds();
 
         if (currentBird == null)
             StartCoroutine(FinishLevelAfterDelay(3f));
@@ -103,6 +112,31 @@ public class BirdQueue : MonoBehaviour
     /// Koliko ptičev je še preostalih (vključno s trenutno).
     /// </summary>
     public int RemainingBirds() => birdQueue.Count + (currentBird != null ? 1 : 0);
+
+    public void HideQueueForResult()
+    {
+        foreach (var bird in spawnedQueueBirds)
+        {
+            if (bird != null)
+                Destroy(bird);
+        }
+
+        spawnedQueueBirds.Clear();
+        birdQueue.Clear();
+
+        if (currentBird != null)
+        {
+            BirdController controller = currentBird.GetComponent<BirdController>();
+            if (controller == null || controller.CurrentState == BirdController.BirdState.OnSlingshot)
+            {
+                Destroy(currentBird);
+                currentBird = null;
+            }
+        }
+
+        if (queueBackgroundRenderer != null)
+            queueBackgroundRenderer.gameObject.SetActive(false);
+    }
 
     public void SetBirdSequence(IEnumerable<QueuedBirdType> sequence)
     {
@@ -124,6 +158,7 @@ public class BirdQueue : MonoBehaviour
         SetBirdSequence(sequence);
         SpawnGeneratedQueue();
         LoadNextBird();
+        queueInitialized = true;
     }
 
     public void RebuildBirdSequenceFromNames(IEnumerable<string> sequence)
@@ -132,6 +167,7 @@ public class BirdQueue : MonoBehaviour
         SetBirdSequenceFromNames(sequence);
         SpawnGeneratedQueue();
         LoadNextBird();
+        queueInitialized = true;
     }
 
     // ── Zasebne metode ─────────────────────────────────────────────
@@ -151,12 +187,13 @@ public class BirdQueue : MonoBehaviour
 
             // Pomanjšaj ptice v vrsti
             bird.transform.localScale *= 0.7f;
+            SetQueueBirdColliders(bird, false);
 
             birdQueue.Enqueue(bird);
             spawnedQueueBirds.Add(bird);
         }
 
-        UpdateQueueBackground();
+        RepositionQueueBirds();
     }
 
     private void SpawnGeneratedQueue()
@@ -168,12 +205,13 @@ public class BirdQueue : MonoBehaviour
         {
             GameObject bird = CreateBird(birdSequence[i], GetQueuePosition(i));
             bird.transform.localScale = Vector3.one * birdScale * 0.7f;
+            SetQueueBirdColliders(bird, false);
 
             birdQueue.Enqueue(bird);
             spawnedQueueBirds.Add(bird);
         }
 
-        UpdateQueueBackground();
+        RepositionQueueBirds();
     }
 
     private void ClearSpawnedBirds()
@@ -190,6 +228,7 @@ public class BirdQueue : MonoBehaviour
         currentBird = null;
         birdQueue.Clear();
         spawnedQueueBirds.Clear();
+        queueInitialized = false;
 
         if (queueBackgroundRenderer != null)
             queueBackgroundRenderer.gameObject.SetActive(false);
@@ -197,29 +236,27 @@ public class BirdQueue : MonoBehaviour
 
     private Vector3 GetQueuePosition(int index)
     {
-        Vector3 start = queueStartPoint != null
-            ? queueStartPoint.position
-            : slingshotSpawnPoint.position + Vector3.left * queueSpacing;
+        int visibleCount = Mathf.Max(1, spawnedQueueBirds.Count);
+        float rowWidth = (visibleCount - 1) * queueSpacing;
+        Vector3 start = GetQueueCenterTopPosition() + Vector3.left * rowWidth * 0.5f;
 
-        int columns = GetQueueColumnCount(start);
-        int row = index / columns;
-        int column = index % columns;
-
-        return start + Vector3.left * column * queueSpacing + Vector3.down * row * queueRowSpacing;
+        return start + Vector3.right * index * queueSpacing;
     }
 
-    private int GetQueueColumnCount(Vector3 start)
+    private Vector3 GetQueueCenterTopPosition()
     {
         Camera camera = Camera.main;
-        if (camera == null || !camera.orthographic)
-            return Mathf.Max(1, birdSequence.Count);
+        if (camera != null && camera.orthographic)
+        {
+            float top = camera.transform.position.y + camera.orthographicSize - queueTopOffset;
+            return new Vector3(camera.transform.position.x, top, 0f);
+        }
 
-        float halfHeight = camera.orthographicSize;
-        float halfWidth = halfHeight * camera.aspect;
-        float leftEdge = camera.transform.position.x - halfWidth + queueScreenPadding;
-        float availableWidth = Mathf.Max(0f, start.x - leftEdge);
+        Vector3 fallback = slingshotSpawnPoint != null
+            ? slingshotSpawnPoint.position
+            : Vector3.zero;
 
-        return Mathf.Max(1, Mathf.FloorToInt(availableWidth / queueSpacing) + 1);
+        return fallback + Vector3.up * queueTopOffset * 2f;
     }
 
     private GameObject CreateBird(QueuedBirdType type, Vector3 position)
@@ -362,7 +399,8 @@ public class BirdQueue : MonoBehaviour
         // Premakni na fračo in povrni velikost
         currentBird.transform.position   = slingshotSpawnPoint.position;
         currentBird.transform.localScale /= 0.7f;
-        UpdateQueueBackground();
+        SetQueueBirdColliders(currentBird, true);
+        RepositionQueueBirds();
 
         Debug.Log($"[BirdQueue] Naslednja ptica naložena. Preostalo: {RemainingBirds()}");
     }
@@ -372,15 +410,29 @@ public class BirdQueue : MonoBehaviour
     /// </summary>
     private void AdvanceQueue()
     {
+        RepositionQueueBirds();
+    }
+
+    private void RepositionQueueBirds()
+    {
         for (int i = 0; i < spawnedQueueBirds.Count; i++)
         {
             if (spawnedQueueBirds[i] != null)
             {
                 spawnedQueueBirds[i].transform.position =
                     GetQueuePosition(i);
+                SetQueueBirdColliders(spawnedQueueBirds[i], false);
             }
         }
 
         UpdateQueueBackground();
+    }
+
+    private void SetQueueBirdColliders(GameObject bird, bool enabled)
+    {
+        if (bird == null) return;
+
+        foreach (var birdCollider in bird.GetComponentsInChildren<Collider2D>())
+            birdCollider.enabled = enabled;
     }
 }

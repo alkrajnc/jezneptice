@@ -39,6 +39,8 @@ public class GameUI : MonoBehaviour
 
     public void ShowWin(int score, int stars)
     {
+        HideQueueForResult();
+
         if (winScoreText != null)
             winScoreText.text = BuildResultText(score, stars);
 
@@ -59,6 +61,8 @@ public class GameUI : MonoBehaviour
 
     public void ShowLose(int score, int stars)
     {
+        HideQueueForResult();
+
         if (loseScoreText != null)
             loseScoreText.text = BuildResultText(score, stars);
 
@@ -114,6 +118,13 @@ public class GameUI : MonoBehaviour
         }
 
         scoreText?.gameObject.SetActive(false);
+    }
+
+    private void HideQueueForResult()
+    {
+        BirdQueue queue = FindFirstObjectByType<BirdQueue>();
+        if (queue != null)
+            queue.HideQueueForResult();
     }
 
     private void ConfigureResultText(Text text)

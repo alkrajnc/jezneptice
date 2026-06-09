@@ -1,6 +1,12 @@
 using System.Collections;
 using UnityEngine;
 
+public enum BirdSpecialAbility
+{
+    EnergyBurst,
+    SpeedBoost
+}
+
 /// <summary>
 /// Upravlja stanje in obnašanje ptice.
 /// Ptica ima 3 stanja: čaka na frači, leti, pristane/umre.
@@ -20,6 +26,7 @@ public class BirdController : MonoBehaviour
     [Header("Posebna moč")]
     [Tooltip("Ali ima ta ptica posebno moč (klik med letom)")]
     public bool hasSpecialAbility = false;
+    public BirdSpecialAbility specialAbilityType = BirdSpecialAbility.EnergyBurst;
 
     [Header("Rdeca ptica - sunek")]
     [Tooltip("Radij kratkega sunka energije okoli ptice.")]
@@ -33,6 +40,18 @@ public class BirdController : MonoBehaviour
     public float energyBurstVisualDuration = 0.35f;
     public float energyBurstRingWidth = 0.08f;
     public Color energyBurstColor = new Color(1f, 0.25f, 0.05f, 0.85f);
+
+    [Header("Rumena ptica - pospesek")]
+    [Tooltip("Kolikokrat hitreje leti po aktivaciji.")]
+    public float speedBoostMultiplier = 1.9f;
+    [Tooltip("Najmanjsa hitrost po boostu, da klik vedno nekaj naredi.")]
+    public float speedBoostMinSpeed = 9f;
+
+    [Header("Rumena ptica - vizual")]
+    public float speedBoostVisualDuration = 0.28f;
+    public float speedBoostStreakLength = 1.7f;
+    public float speedBoostStreakWidth = 0.09f;
+    public Color speedBoostColor = new Color(1f, 0.9f, 0.05f, 0.9f);
     [Tooltip("Ali je bila posebna moč že aktivirana")]
     private bool abilityUsed = false;
 
@@ -128,6 +147,15 @@ public class BirdController : MonoBehaviour
     protected virtual void ActivateSpecialAbility()
     {
         abilityUsed = true;
+
+        if (specialAbilityType == BirdSpecialAbility.SpeedBoost)
+        {
+            Vector2 boostDirection = ApplySpeedBoost();
+            ShowSpeedBoostVisual(boostDirection);
+            Debug.Log("[BirdController] Rumena ptica: pospesek!");
+            return;
+        }
+
         ApplyEnergyBurst();
         ShowEnergyBurstVisual();
         Debug.Log("[BirdController] Rdeca ptica: sunek energije!");
@@ -161,6 +189,81 @@ public class BirdController : MonoBehaviour
     private void ShowEnergyBurstVisual()
     {
         StartCoroutine(AnimateEnergyBurstRing());
+    }
+
+    private Vector2 ApplySpeedBoost()
+    {
+        Vector2 velocity = rb.linearVelocity;
+        Vector2 direction = velocity.sqrMagnitude > 0.01f
+            ? velocity.normalized
+            : Vector2.right;
+
+        float boostedSpeed = Mathf.Max(velocity.magnitude * speedBoostMultiplier, speedBoostMinSpeed);
+        rb.linearVelocity = direction * boostedSpeed;
+
+        return direction;
+    }
+
+    private void ShowSpeedBoostVisual(Vector2 direction)
+    {
+        StartCoroutine(AnimateSpeedBoostStreak(direction));
+    }
+
+    private IEnumerator AnimateSpeedBoostStreak(Vector2 direction)
+    {
+        if (direction.sqrMagnitude < 0.01f)
+            direction = Vector2.right;
+
+        direction.Normalize();
+        Vector2 perpendicular = new Vector2(-direction.y, direction.x);
+        float duration = Mathf.Max(0.01f, speedBoostVisualDuration);
+
+        GameObject effect = new GameObject("SpeedBoostStreak");
+        Destroy(effect, duration + 0.1f);
+
+        const int streakCount = 3;
+        LineRenderer[] streaks = new LineRenderer[streakCount];
+        float[] offsets = { -0.18f, 0f, 0.18f };
+
+        for (int i = 0; i < streakCount; i++)
+        {
+            GameObject streakObject = new GameObject($"SpeedBoostLine_{i}");
+            streakObject.transform.SetParent(effect.transform);
+
+            LineRenderer line = streakObject.AddComponent<LineRenderer>();
+            line.useWorldSpace = true;
+            line.positionCount = 2;
+            line.sortingOrder = 31;
+            line.startWidth = speedBoostStreakWidth;
+            line.endWidth = 0f;
+            line.material = new Material(Shader.Find("Sprites/Default"));
+            streaks[i] = line;
+        }
+
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / duration);
+            Color color = speedBoostColor;
+            color.a = Mathf.Lerp(speedBoostColor.a, 0f, t);
+
+            for (int i = 0; i < streakCount; i++)
+            {
+                Vector3 offset = perpendicular * offsets[i];
+                Vector3 origin = transform.position + offset;
+                Vector3 tail = origin - (Vector3)direction * Mathf.Lerp(0.25f, speedBoostStreakLength, t);
+
+                streaks[i].startColor = color;
+                streaks[i].endColor = new Color(color.r, color.g, color.b, 0f);
+                streaks[i].SetPosition(0, origin);
+                streaks[i].SetPosition(1, tail);
+            }
+
+            yield return null;
+        }
+
+        Destroy(effect);
     }
 
     private IEnumerator AnimateEnergyBurstRing()

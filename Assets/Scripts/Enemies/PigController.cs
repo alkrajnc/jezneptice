@@ -77,6 +77,37 @@ public class PigController : MonoBehaviour
     public bool IsDead => isDead;
     public float HealthPercent => currentHealth / maxHealth;
 
+    public void Configure(float health, int scoreForKill = 0, int scoreForDamage = 0)
+    {
+        if (health > 0f)
+        {
+            maxHealth = health;
+            damagedThreshold = maxHealth * 0.5f;
+            criticalThreshold = maxHealth * 0.25f;
+        }
+
+        if (scoreForKill > 0)
+            killScore = scoreForKill;
+
+        if (scoreForDamage > 0)
+            damageScore = scoreForDamage;
+
+        currentHealth = maxHealth;
+        currentState = PigState.Healthy;
+        isDead = false;
+
+        if (spriteRenderer == null)
+            spriteRenderer = GetComponent<SpriteRenderer>();
+
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.enabled = true;
+            originalColor = spriteRenderer.color;
+            if (spriteHealthy != null)
+                spriteRenderer.sprite = spriteHealthy;
+        }
+    }
+
 
     // ─────────────────────────────────────────────
     // Unity callbacks

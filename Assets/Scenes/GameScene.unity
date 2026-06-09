@@ -1087,9 +1087,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::LevelManager
   levelJson: {fileID: 0}
   pigPrefab: {fileID: 0}
-  woodBlockPrefab: {fileID: 0}
-  stoneBlockPrefab: {fileID: 0}
-  iceBlockPrefab: {fileID: 0}
+  woodBlockPrefab: {fileID: 7432143328852416025, guid: 4176e1c13e353d8a1b41be80822437b3, type: 3}
+  stoneBlockPrefab: {fileID: 7432143328852416025, guid: 0018d4f37908e7258837a4f3e90a2ee6, type: 3}
+  iceBlockPrefab: {fileID: 7432143328852416025, guid: de986f1b94704b278b821deeb1eaec97, type: 3}
 --- !u!4 &586269408
 Transform:
   m_ObjectHideFlags: 0

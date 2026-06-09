@@ -23,6 +23,11 @@ public class BlockData
     public string type;
     public float x;
     public float y;
+    public float rotation;
+    public float width;
+    public float height;
+    public int score;
+    public float health;
 }
 
 [Serializable]
@@ -30,4 +35,7 @@ public class PigData
 {
     public float x;
     public float y;
+    public float health;
+    public int killScore;
+    public int damageScore;
 }

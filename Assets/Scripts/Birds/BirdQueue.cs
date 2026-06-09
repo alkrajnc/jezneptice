@@ -118,6 +118,22 @@ public class BirdQueue : MonoBehaviour
             birdSequence.Add(ParseBirdType(birdName));
     }
 
+    public void RebuildBirdSequence(IEnumerable<QueuedBirdType> sequence)
+    {
+        ClearSpawnedBirds();
+        SetBirdSequence(sequence);
+        SpawnGeneratedQueue();
+        LoadNextBird();
+    }
+
+    public void RebuildBirdSequenceFromNames(IEnumerable<string> sequence)
+    {
+        ClearSpawnedBirds();
+        SetBirdSequenceFromNames(sequence);
+        SpawnGeneratedQueue();
+        LoadNextBird();
+    }
+
     // ── Zasebne metode ─────────────────────────────────────────────
 
     /// <summary>
@@ -158,6 +174,25 @@ public class BirdQueue : MonoBehaviour
         }
 
         UpdateQueueBackground();
+    }
+
+    private void ClearSpawnedBirds()
+    {
+        if (currentBird != null)
+            Destroy(currentBird);
+
+        foreach (var bird in spawnedQueueBirds)
+        {
+            if (bird != null)
+                Destroy(bird);
+        }
+
+        currentBird = null;
+        birdQueue.Clear();
+        spawnedQueueBirds.Clear();
+
+        if (queueBackgroundRenderer != null)
+            queueBackgroundRenderer.gameObject.SetActive(false);
     }
 
     private Vector3 GetQueuePosition(int index)

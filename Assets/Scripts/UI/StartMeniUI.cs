@@ -271,8 +271,9 @@ private void CreateVolumeSlider()
             new Vector2(0, 55), new Vector2(320, 68), new Color(1f, 0.78f, 0.12f));
         level1Btn.GetComponent<Button>().onClick.AddListener(() => StartLevel(1));
 
-        MakeText(levelPanel, "NextLevelHint", "LEVEL 2", 28,
-            new Color(0.55f, 0.55f, 0.55f), new Vector2(0, -35), new Vector2(320, 58));
+        var level2Btn = MakeButton(levelPanel, "Level2Button", "LEVEL 2",
+            new Vector2(0, -35), new Vector2(320, 68), new Color(1f, 0.72f, 0.1f));
+        level2Btn.GetComponent<Button>().onClick.AddListener(() => StartLevel(2));
 
         MakeText(levelPanel, "NextLevelHint2", "LEVEL 3", 28,
             new Color(0.38f, 0.38f, 0.38f), new Vector2(0, -115), new Vector2(320, 58));
@@ -297,10 +298,13 @@ private void CreateVolumeSlider()
         PlayerPrefs.SetInt("SELECTED_LEVEL", levelIndex);
         Debug.Log($"[StartMenuUI] Izbran level: {levelIndex}");
 
-        Time.timeScale = 1f;
+        if (LevelManager.Instance != null)
+            LevelManager.Instance.StartSelectedLevel(levelIndex);
 
         if (GameManager.Instance != null)
             GameManager.Instance.StartGame();
+
+        Time.timeScale = 1f;
 
         if (menuPanel != null)
             Destroy(menuPanel.transform.root.gameObject);

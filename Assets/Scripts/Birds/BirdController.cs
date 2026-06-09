@@ -21,7 +21,8 @@ public class BirdController : MonoBehaviour
     // ── Nastavitve ─────────────────────────────────────────────────
     [Header("Fizika")]
     [Tooltip("Koliko časa po pristanku se ptica uniči")]
-    public float destroyDelay = 3f;
+    public float destroyDelay = 0.6f;
+    public float maxFlightTime = 3.2f;
 
     [Header("Posebna moč")]
     [Tooltip("Ali ima ta ptica posebno moč (klik med letom)")]
@@ -108,6 +109,7 @@ public class BirdController : MonoBehaviour
         SetPhysicsEnabled(true);
         rb.AddForce(force, ForceMode2D.Impulse);
         GetComponent<AudioSource>().PlayOneShot(launchSfx);
+        StartCoroutine(DieAfterMaxFlightTime());
 
         Debug.Log($"[BirdController] Ptica izstreljena s silo: {force}");
     }
@@ -139,6 +141,14 @@ public class BirdController : MonoBehaviour
     {
         rb.gravityScale = enabled ? 1f : 0f;
         rb.bodyType = enabled ? RigidbodyType2D.Dynamic : RigidbodyType2D.Kinematic;
+    }
+
+    private IEnumerator DieAfterMaxFlightTime()
+    {
+        yield return new WaitForSeconds(maxFlightTime);
+
+        if (CurrentState == BirdState.Flying)
+            Die();
     }
 
     /// <summary>
@@ -311,11 +321,11 @@ public class BirdController : MonoBehaviour
     {
         if (CurrentState != BirdState.Flying) return;
 
-        // Ob trku z bloki ali prašiči ptica "umre"
-        if (collision.gameObject.CompareTag("Block") || collision.gameObject.CompareTag("Pig"))
-        {
-            Die();
-        }
+        // Ob prvem trku ptica zakljuci let.
+        if (collision.gameObject.CompareTag("Bird"))
+            return;
+
+        Die();
     }
 
     void OnDrawGizmosSelected()
